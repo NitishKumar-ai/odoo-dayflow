@@ -24,12 +24,19 @@ export default async function Home() {
       <LandingReveal />
       <nav className={styles.nav} aria-label="Main navigation">
         <Link className={styles.brand} href="/" aria-label="Dayflow home">
-          <FlowMark />
-          <span>Dayflow</span>
+          <Image
+            className={styles.brandLogo}
+            src="/brand/dayflow-logo.png"
+            alt="Dayflow"
+            width={140}
+            height={44}
+            priority
+          />
         </Link>
         <div className={styles.navLinks}>
           <a href="#product">Product</a>
           <a href="#why-dayflow">Why Dayflow</a>
+          <Link href="/docs">Docs</Link>
           <Link href="/signin">Sign in</Link>
           <Link className={styles.navCta} href="/signup">Start your day →</Link>
         </div>
@@ -117,10 +124,20 @@ export default async function Home() {
       </section>
 
       <footer className={styles.footer}>
-        <div className={styles.brand}><FlowMark /><span>Dayflow</span></div>
-        <p>Every workday, perfectly aligned.</p>
-        <div><Link href="/signin">Sign in</Link><Link href="/signup">Get started</Link></div>
-        <small>© 2026 DAYFLOW</small>
+        <div className={styles.footerBrand}>
+          <Image
+            className={styles.brandLogo}
+            src="/brand/dayflow-logo.png"
+            alt="Dayflow"
+            width={140}
+            height={44}
+          />
+          <p>Every workday,<br />perfectly aligned.</p>
+        </div>
+        <div className={styles.footerLinks}><span>PRODUCT</span><a href="#product">Overview</a><a href="#why-dayflow">Why Dayflow</a></div>
+        <div className={styles.footerLinks}><span>RESOURCES</span><Link href="/docs">Documentation</Link><Link href="/docs#quick-start">Quick start</Link></div>
+        <div className={styles.footerLinks}><span>ACCOUNT</span><Link href="/signin">Sign in</Link><Link href="/signup">Get started</Link></div>
+        <small><span>© 2026 DAYFLOW</span><span>BUILT FOR BETTER WORKDAYS <i /></span></small>
       </footer>
     </main>
   );

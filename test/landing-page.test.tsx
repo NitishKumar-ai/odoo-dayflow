@@ -34,6 +34,10 @@ describe("public landing page", () => {
       "href",
       "/signin",
     );
+    expect(screen.getAllByRole("link", { name: /docs|documentation/i })[0]).toHaveAttribute(
+      "href",
+      "/docs",
+    );
   });
 
   it("sends an authenticated visitor straight to the dashboard", async () => {
