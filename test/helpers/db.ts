@@ -1,10 +1,12 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
+import { assertTestDatabaseUrl } from "./test-db-url";
 import { users, employees, leaveBalances } from "@/db/schema";
 import { DEFAULT_ENTITLEMENT } from "@/lib/leave";
 
-/** Wipe every table between tests. */
+/** Wipe every table between tests. Guarded: this truncates everything. */
 export async function resetDb() {
+  assertTestDatabaseUrl(process.env.DATABASE_URL);
   await db.execute(sql`
     truncate table
       activity_log, attendance, leave_requests, leave_balances,
