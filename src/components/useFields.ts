@@ -13,8 +13,13 @@ type FieldElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
  * re-apply that value to the DOM after the reset — the node silently falls back
  * to its first option while React still believes the old value is showing. That
  * bites `<select>` hardest: the box reads "Paid leave" while state says "Sick
- * leave", and the next submit sends the wrong one. The effect below re-syncs
- * every registered node after each commit, which runs after React's reset.
+ * leave", and the next submit sends the wrong one.
+ *
+ * The sync effect below re-applies state to every registered node after each
+ * commit, which runs after React's reset. On the very first commit it runs the
+ * other way: a browser or password manager may have filled the form before
+ * hydration, and blindly writing empty state over that would wipe saved
+ * credentials, so the DOM wins once and seeds the state instead.
  */
 export function useFields<T extends Record<string, string>>(
   defaults: T,
@@ -23,8 +28,26 @@ export function useFields<T extends Record<string, string>>(
 ) {
   const [values, setValues] = useState<T>(defaults);
   const nodes = useRef(new Map<string, FieldElement>());
+  const hydrated = useRef(false);
 
   useEffect(() => {
+    if (!hydrated.current) {
+      hydrated.current = true;
+
+      // Adopt anything already in the DOM (autofill) rather than clearing it.
+      const adopted: Partial<T> = {};
+      for (const [key, node] of nodes.current) {
+        const filled = node.value;
+        if (filled && filled !== values[key]) {
+          (adopted as Record<string, string>)[key] = filled;
+        }
+      }
+      if (Object.keys(adopted).length > 0) {
+        setValues((v) => ({ ...v, ...adopted }));
+        return;
+      }
+    }
+
     for (const [key, node] of nodes.current) {
       const want = values[key];
       if (want !== undefined && node.value !== want) node.value = want;
