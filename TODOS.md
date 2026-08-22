@@ -120,6 +120,90 @@ but generated migrations are the right thing against a real database.
 **Priority:** P2
 **Depends on:** None.
 
+## Design
+
+### Replace the dashboard card mosaic with a real layout
+
+**What:** Stop rendering every dashboard region as an identical rounded card.
+Keep the punch clock as the primary surface and give secondary information open
+layout, dividers and tables.
+
+**Why:** An outside design review classified the app as "UI made of stacked
+cards instead of layout". With seven near-identical containers on the dashboard,
+nothing reads as more important than anything else, so the eye has no entry
+point.
+
+**Context:** `src/app/(app)/dashboard/page.tsx` lines 141, 160, 190, 228, 301,
+355 and 407 all reach for `.card` in `src/app/globals.css`. Deferred from the
+v0.2.0.0 review because it is a design-direction change, not a defect.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** A decision on the intended visual hierarchy.
+
+### Scope motion to state changes
+
+**What:** Replace the blanket `transition: all` on cards, inputs and buttons with
+transitions on the specific properties that change, and drop the infinite pulse
+on the status dot in favour of a state-driven cue.
+
+**Why:** Animating everything makes nothing feel intentional, and `transition:
+all` forces the browser to watch every property. The reduced-motion escape hatch
+shipped in v0.2.0.0, but the default path is still ornamental.
+
+**Context:** `src/app/globals.css` lines 76, 80, 124 and 151;
+`src/components/CheckInOut.tsx` line 52.
+
+**Effort:** S
+**Priority:** P2
+**Depends on:** None.
+
+### Unify the colour system on tokens
+
+**What:** Move the component-level blue, emerald, amber, rose and purple values
+onto the semantic custom properties, so dark mode has one definition instead of
+hand-authored variants per component.
+
+**Why:** The palette is currently split between `:root` tokens and per-component
+Tailwind colours. Every new component re-decides its own dark-mode treatment,
+which is how a design system drifts.
+
+**Context:** `src/app/globals.css` line 3 defines the tokens;
+`src/components/StatCard.tsx` lines 17-47, `src/components/LeaveBalanceCard.tsx`
+line 22 and `src/components/Brand.tsx` line 25 bypass them.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** None.
+
 ## Completed
 
-_Nothing yet — v0.1.0.0 is the first release._
+### Redesign every screen on a shared design system
+
+Design tokens, an icon set, and a rebuild of sign-in, sign-up, verification,
+dashboard, attendance, leave, payroll, profile, the employee directory and all
+admin hubs.
+
+**Completed:** v0.2.0.0 (2026-08-22)
+
+### Make the interface usable on a phone
+
+Single-row scrolling navigation, a collapsing profile block, 44px touch targets,
+form fields that no longer trigger iOS zoom, and support for the reduced-motion
+system setting.
+
+**Completed:** v0.2.0.0 (2026-08-22)
+
+### Close the public administrator sign-up hole
+
+Sign-up now always creates an employee account, and the seeded demo credentials
+were removed from the sign-in page.
+
+**Completed:** v0.2.0.0 (2026-08-22)
+
+### Guard the destructive demo seed
+
+Seeding refuses to run against production without an explicit opt-in, requires a
+strong password, and no longer prints that password on completion.
+
+**Completed:** v0.2.0.0 (2026-08-22)
