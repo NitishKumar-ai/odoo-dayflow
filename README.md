@@ -62,6 +62,10 @@ spread of leave requests including two awaiting approval.
 | `npm run db:seed` | Wipe and reseed demo data |
 | `npm run typecheck` | `tsc --noEmit` |
 
+## Documentation
+
+For a detailed technical guide on all application routes, layout hierarchies, parameters, authorization checks, and server actions, see [docs/ROUTING_PAGES.md](docs/ROUTING_PAGES.md).
+
 The seed command refuses to run with `NODE_ENV=production` unless
 `ALLOW_DEMO_SEED=true` is explicitly set. It always deletes existing data, so
 never enable it for a real company database.
