@@ -8,6 +8,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dayflow_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/dayflow_test
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +39,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests
+      # Integration tests push the Drizzle schema into TEST_DATABASE_URL first
+      # (see test/global-setup.ts), so no migration step is needed here.
+      - name: Tests
         run: npm test
 
       # The Postgres client is lazy, so a placeholder URL is enough to build.
