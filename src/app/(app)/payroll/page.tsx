@@ -2,6 +2,13 @@ import { requireUser } from "@/lib/auth";
 import { getCurrentSalary, getSalaryHistory } from "@/lib/employee-queries";
 import { formatDate } from "@/lib/dates";
 import { formatMoney, gross, net } from "@/lib/money";
+import { SalaryCard } from "@/components/SalaryCard";
+import {
+  IconPayroll,
+  IconSparkles,
+  IconFileText,
+  IconTrendingUp,
+} from "@/components/Icons";
 
 export default async function PayrollPage() {
   const user = await requireUser();
@@ -9,101 +16,152 @@ export default async function PayrollPage() {
   const history = await getSalaryHistory(user.employeeId);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">My salary</h1>
-        <p className="text-sm text-muted">
-          Read-only. HR maintains your salary structure — contact them about changes.
-        </p>
+    <div className="space-y-8">
+      {/* Title & Summary */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            My Compensation & Payroll
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            View your active salary structure, monthly breakdown, and historical compensation revisions.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="pill bg-brand-soft text-brand font-bold ring-brand/20">
+            Confidential & Verified
+          </span>
+        </div>
       </div>
 
       {!current ? (
-        <div className="card p-6">
-          <p className="text-sm text-muted">No salary structure has been recorded for you yet.</p>
+        <div className="card p-12 text-center text-muted">
+          <IconPayroll size={36} className="mx-auto mb-2 text-muted/50" />
+          <p className="font-bold text-foreground">No Salary Structure Configured</p>
+          <p className="mt-1 text-xs text-muted">
+            Your compensation package has not been recorded by the HR department yet. Please reach out to your HR administrator.
+          </p>
         </div>
       ) : (
-        <>
-          <section className="grid gap-4 sm:grid-cols-3">
-            <div className="card p-5">
-              <p className="text-sm text-muted">Gross monthly</p>
-              <p className="mt-1 text-3xl font-semibold tabular-nums">
-                {formatMoney(gross(current), current.currency)}
-              </p>
-            </div>
-            <div className="card p-5">
-              <p className="text-sm text-muted">Deductions</p>
-              <p className="mt-1 text-3xl font-semibold tabular-nums">
-                −{formatMoney(Number(current.deductions), current.currency)}
-              </p>
-            </div>
-            <div className="card p-5">
-              <p className="text-sm text-muted">Net monthly</p>
-              <p className="mt-1 text-3xl font-semibold tabular-nums">
-                {formatMoney(net(current), current.currency)}
-              </p>
-            </div>
-          </section>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Salary Card */}
+          <div className="lg:col-span-2 space-y-6">
+            <SalaryCard salary={current} />
 
-          <section className="card p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Breakdown · effective {formatDate(current.effectiveFrom)}
-            </h2>
-            <dl className="mt-4 max-w-md space-y-2 text-sm">
-              {[
-                ["Basic", current.basic],
-                ["House rent allowance", current.hra],
-                ["Other allowances", current.allowances],
-              ].map(([label, amount]) => (
-                <div key={label} className="flex justify-between">
-                  <dt className="text-muted">{label}</dt>
-                  <dd className="tabular-nums">{formatMoney(Number(amount), current.currency)}</dd>
+            {/* Compensation Revision History */}
+            {history.length > 0 && (
+              <section className="card overflow-hidden shadow-xs">
+                <div className="flex items-center justify-between border-b border-line px-6 py-4">
+                  <div className="flex items-center gap-2">
+                    <IconTrendingUp size={16} className="text-brand" />
+                    <h2 className="text-base font-bold text-foreground">
+                      Salary Revision History
+                    </h2>
+                  </div>
+                  <span className="text-xs text-muted font-medium">
+                    {history.length} revision{history.length === 1 ? "" : "s"} logged
+                  </span>
                 </div>
-              ))}
-              <div className="flex justify-between border-t border-line pt-2 font-medium">
-                <dt>Gross</dt>
-                <dd className="tabular-nums">{formatMoney(gross(current), current.currency)}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted">Deductions</dt>
-                <dd className="tabular-nums">
-                  −{formatMoney(Number(current.deductions), current.currency)}
-                </dd>
-              </div>
-              <div className="flex justify-between border-t border-line pt-2 font-medium">
-                <dt>Net pay</dt>
-                <dd className="tabular-nums">{formatMoney(net(current), current.currency)}</dd>
-              </div>
-            </dl>
-          </section>
 
-          {history.length > 1 ? (
-            <section className="card overflow-hidden">
-              <h2 className="border-b border-line px-5 py-3 font-medium">Revision history</h2>
-              <table className="w-full">
-                <thead className="bg-surface-muted">
-                  <tr>
-                    <th className="th">Effective from</th>
-                    <th className="th">Gross</th>
-                    <th className="th">Deductions</th>
-                    <th className="th">Net</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {history.map((h) => (
-                    <tr key={h.id}>
-                      <td className="td">{formatDate(h.effectiveFrom)}</td>
-                      <td className="td tabular-nums">{formatMoney(gross(h), h.currency)}</td>
-                      <td className="td tabular-nums">
-                        {formatMoney(Number(h.deductions), h.currency)}
-                      </td>
-                      <td className="td tabular-nums">{formatMoney(net(h), h.currency)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          ) : null}
-        </>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-surface-muted/60">
+                      <tr>
+                        <th className="th">Effective Date</th>
+                        <th className="th">Gross Monthly</th>
+                        <th className="th">Deductions</th>
+                        <th className="th">Net Take-Home</th>
+                        <th className="th">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {history.map((h, idx) => {
+                        const isCurrent = h.id === current.id;
+                        return (
+                          <tr
+                            key={h.id}
+                            className={`hover:bg-surface-muted/30 transition-colors ${
+                              isCurrent ? "bg-brand-soft/20 font-medium" : ""
+                            }`}
+                          >
+                            <td className="td">
+                              <span className="font-bold text-foreground">
+                                {formatDate(h.effectiveFrom)}
+                              </span>
+                              {isCurrent && (
+                                <span className="ml-2 pill bg-brand text-white text-[9px] px-1.5 py-0">
+                                  Current
+                                </span>
+                              )}
+                            </td>
+                            <td className="td tabular-nums font-semibold text-foreground">
+                              {formatMoney(gross(h), h.currency)}
+                            </td>
+                            <td className="td tabular-nums text-rose-600 dark:text-rose-400 font-semibold">
+                              −{formatMoney(Number(h.deductions), h.currency)}
+                            </td>
+                            <td className="td tabular-nums font-bold text-emerald-600 dark:text-emerald-400">
+                              {formatMoney(net(h), h.currency)}
+                            </td>
+                            <td className="td">
+                              <span
+                                className={`pill ${
+                                  isCurrent
+                                    ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+                                    : "bg-surface-muted text-muted ring-line"
+                                }`}
+                              >
+                                {isCurrent ? "Active" : "Archived"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Side Info Cards */}
+          <div className="space-y-6">
+            <div className="card p-6 bg-linear-to-br from-brand-soft/50 via-surface to-surface border-brand/20">
+              <div className="flex items-center gap-2 mb-3">
+                <IconFileText size={18} className="text-brand" />
+                <h3 className="font-bold text-foreground">Payroll Policy</h3>
+              </div>
+              <ul className="space-y-2.5 text-xs text-muted">
+                <li className="flex items-start gap-2">
+                  <span className="text-brand font-bold">✓</span>
+                  <span>Salaries are disbursed on the last working day of each calendar month.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand font-bold">✓</span>
+                  <span>TDS and tax deductions are computed in accordance with statutory tax brackets.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand font-bold">✓</span>
+                  <span>Unpaid leaves taken beyond accrued balances are prorated against monthly gross.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="card p-6">
+              <h3 className="font-bold text-foreground text-sm mb-2">Need a Pay Adjustment?</h3>
+              <p className="text-xs text-muted mb-4">
+                Salary structures, tax declarations, and bank details are managed by HR. Submit an inquiry through the HR helpdesk for any clarifications.
+              </p>
+              <a
+                href="mailto:hr@dayflow.test"
+                className="btn-secondary btn-sm w-full text-center text-xs font-bold"
+              >
+                Contact HR Support
+              </a>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
