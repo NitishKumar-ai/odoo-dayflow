@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db, users, employees } from "@/db";
 
+export { passwordProblems } from "./password";
+
 const COOKIE = "dayflow_session";
 const MAX_AGE = 60 * 60 * 8; // 8 hours
 
@@ -32,16 +34,6 @@ export async function verifyPassword(plain: string, hash: string) {
   return bcrypt.compare(plain, hash);
 }
 
-/** Spec 3.1.1: "Password must follow security rules." */
-export function passwordProblems(pw: string): string[] {
-  const problems: string[] = [];
-  if (pw.length < 10) problems.push("be at least 10 characters");
-  if (!/[a-z]/.test(pw)) problems.push("include a lowercase letter");
-  if (!/[A-Z]/.test(pw)) problems.push("include an uppercase letter");
-  if (!/[0-9]/.test(pw)) problems.push("include a number");
-  if (!/[^A-Za-z0-9]/.test(pw)) problems.push("include a symbol");
-  return problems;
-}
 
 export async function createSession(userId: string) {
   const token = await new SignJWT({ sub: userId })
