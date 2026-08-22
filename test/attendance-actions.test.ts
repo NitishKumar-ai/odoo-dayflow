@@ -225,3 +225,37 @@ describe("setAttendanceStatusAction", () => {
     ).rejects.toThrow(/not an admin/i);
   });
 });
+
+describe("concurrent submits", () => {
+  /** Regression: a double-click used to let a raw unique-violation error escape. */
+  it("treats a second simultaneous check-in as 'already checked in'", async () => {
+    const results = await Promise.all([
+      checkInAction({}, new FormData()),
+      checkInAction({}, new FormData()),
+    ]);
+
+    const ok = results.filter((r) => r.ok);
+    const errs = results.filter((r) => r.error);
+    expect(ok).toHaveLength(1);
+    expect(errs).toHaveLength(1);
+    expect(errs[0].error).toMatch(/already checked in/i);
+    expect(await db.select().from(attendance)).toHaveLength(1);
+  });
+
+  it("lets two admins save the same attendance cell without failing", async () => {
+    actAs({ ...admin, role: "admin" });
+    const results = await Promise.all([
+      setAttendanceStatusAction({}, form({
+        employeeId: employee.employeeId, workDate: "2026-09-07", status: "absent", note: "a",
+      })),
+      setAttendanceStatusAction({}, form({
+        employeeId: employee.employeeId, workDate: "2026-09-07", status: "half_day", note: "b",
+      })),
+    ]);
+
+    expect(results.every((r) => r.ok)).toBe(true);
+    const rows = await db.select().from(attendance);
+    expect(rows).toHaveLength(1);
+    expect(["absent", "half_day"]).toContain(rows[0].status);
+  });
+});

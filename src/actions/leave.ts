@@ -40,55 +40,70 @@ export async function applyLeaveAction(
   const days = countLeaveDays(startDate, endDate);
   if (days === 0) return { error: "That range only covers weekends." };
 
-  // Reject ranges that collide with a request that is already pending or approved.
-  const overlapping = await db
-    .select({ id: leaveRequests.id, start: leaveRequests.startDate, end: leaveRequests.endDate })
-    .from(leaveRequests)
-    .where(
-      and(
-        eq(leaveRequests.employeeId, user.employeeId),
-        ne(leaveRequests.status, "rejected"),
-        sql`${leaveRequests.startDate} <= ${endDate} and ${leaveRequests.endDate} >= ${startDate}`,
-      ),
-    )
-    .limit(1);
-  if (overlapping.length) {
-    return {
-      error: `You already have a request covering ${formatDate(overlapping[0].start)} – ${formatDate(overlapping[0].end)}.`,
-    };
-  }
-
   const year = Number(startDate.slice(0, 4));
-  if (leaveType !== "unpaid") {
-    const [balance] = await db
-      .select({ entitled: leaveBalances.entitledDays })
-      .from(leaveBalances)
+
+  // The overlap and balance checks are read-then-write, so two submits landing
+  // together could both pass and both insert. Lock the employee row for the
+  // duration so the second one sees the first one's request.
+  const result = await db.transaction(async (tx): Promise<ActionResult> => {
+    await tx
+      .select({ id: employees.id })
+      .from(employees)
+      .where(eq(employees.id, user.employeeId))
+      .for("update");
+
+    const overlapping = await tx
+      .select({ id: leaveRequests.id, start: leaveRequests.startDate, end: leaveRequests.endDate })
+      .from(leaveRequests)
       .where(
         and(
-          eq(leaveBalances.employeeId, user.employeeId),
-          eq(leaveBalances.year, year),
-          eq(leaveBalances.leaveType, leaveType),
+          eq(leaveRequests.employeeId, user.employeeId),
+          ne(leaveRequests.status, "rejected"),
+          sql`${leaveRequests.startDate} <= ${endDate} and ${leaveRequests.endDate} >= ${startDate}`,
         ),
       )
       .limit(1);
-
-    const entitled = balance?.entitled ?? 0;
-    const used = await daysUsed(user.employeeId, leaveType, year);
-    if (used + days > entitled) {
+    if (overlapping.length) {
       return {
-        error: `That exceeds your ${LEAVE_TYPE_LABEL[leaveType].toLowerCase()} balance — ${entitled - used} of ${entitled} days left in ${year}.`,
+        error: `You already have a request covering ${formatDate(overlapping[0].start)} \u2013 ${formatDate(overlapping[0].end)}.`,
       };
     }
-  }
 
-  await db.insert(leaveRequests).values({
-    employeeId: user.employeeId,
-    leaveType,
-    startDate,
-    endDate,
-    days,
-    remarks,
+    if (leaveType !== "unpaid") {
+      const [balance] = await tx
+        .select({ entitled: leaveBalances.entitledDays })
+        .from(leaveBalances)
+        .where(
+          and(
+            eq(leaveBalances.employeeId, user.employeeId),
+            eq(leaveBalances.year, year),
+            eq(leaveBalances.leaveType, leaveType),
+          ),
+        )
+        .limit(1);
+
+      const entitled = balance?.entitled ?? 0;
+      const used = await daysUsed(user.employeeId, leaveType, year, tx);
+      if (used + days > entitled) {
+        return {
+          error: `That exceeds your ${LEAVE_TYPE_LABEL[leaveType].toLowerCase()} balance \u2014 ${entitled - used} of ${entitled} days left in ${year}.`,
+        };
+      }
+    }
+
+    await tx.insert(leaveRequests).values({
+      employeeId: user.employeeId,
+      leaveType,
+      startDate,
+      endDate,
+      days,
+      remarks,
+    });
+
+    return {};
   });
+
+  if (result.error) return result;
 
   await logActivity(
     user.employeeId,
