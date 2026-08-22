@@ -37,7 +37,7 @@ export default async function Home() {
           <a href="#product">Product</a>
           <a href="#why-dayflow">Why Dayflow</a>
           <Link href="/docs">Docs</Link>
-          <Link href="/signin">Sign in</Link>
+          <Link className={styles.navSignIn} href="/signin">Sign in</Link>
           <Link className={styles.navCta} href="/signup">Start your day →</Link>
         </div>
       </nav>
@@ -134,7 +134,7 @@ export default async function Home() {
           />
           <p>Every workday,<br />perfectly aligned.</p>
         </div>
-        <div className={styles.footerLinks}><span>PRODUCT</span><a href="#product">Overview</a><a href="#why-dayflow">Why Dayflow</a></div>
+        <div className={`${styles.footerLinks} ${styles.footerProduct}`}><span>PRODUCT</span><a href="#product">Overview</a><a href="#why-dayflow">Why Dayflow</a></div>
         <div className={styles.footerLinks}><span>RESOURCES</span><Link href="/docs">Documentation</Link><Link href="/docs#quick-start">Quick start</Link></div>
         <div className={styles.footerLinks}><span>ACCOUNT</span><Link href="/signin">Sign in</Link><Link href="/signup">Get started</Link></div>
         <small><span>© 2026 DAYFLOW</span><span>BUILT FOR BETTER WORKDAYS <i /></span></small>
