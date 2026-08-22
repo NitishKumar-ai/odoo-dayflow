@@ -7,17 +7,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # dev server on http://localhost:3000 (Turbopack)
-npm run build    # production build
-npm run start    # serve the production build
-npx tsc --noEmit # typecheck (no lint or test tooling is configured yet)
+npm run dev       # dev server on http://localhost:3000 (Turbopack)
+npm run build     # production build
+npm run start     # serve the production build
+npm run typecheck # tsc --noEmit
+npm test          # Vitest (see ## Testing below)
+npm run db:push   # apply src/db/schema.ts to DATABASE_URL
+npm run db:seed   # wipe and reseed demo data
 ```
 
-There is no linter, test runner, or CI in this repo. If you add tests, add the script to `package.json` and note the single-test invocation here.
+There is no linter. CI (`.github/workflows/test.yml`) runs typecheck, tests, and build on every push and pull request.
 
-## State of the codebase
+## What this is
 
-This is a freshly scaffolded `create-next-app` project — Next.js 16.3.2, React 19, TypeScript strict, Tailwind CSS v4. `src/app/` contains only the generated `layout.tsx`, `page.tsx`, and `globals.css`. There is no application architecture yet; the Odoo/dayflow domain implied by the repo name is unimplemented. Establish structure deliberately rather than assuming conventions exist.
+Dayflow, an HRMS built to a requirements document: authentication with email
+verification, role-based access for HR/Admin and Employee, profile management,
+attendance, leave with approvals, and payroll visibility.
+
+Next.js 16.3.2, React 19, TypeScript strict, Tailwind v4, PostgreSQL through
+Drizzle ORM. Requires a running Postgres and a `.env.local` with
+`DATABASE_URL`, `SESSION_SECRET`, and `APP_URL`.
+
+### Layout
+
+| Path | Holds |
+|---|---|
+| `src/db/` | Drizzle schema, client, seed script |
+| `src/lib/` | Business rules and server-only queries |
+| `src/actions/` | Server actions — every mutation goes through one |
+| `src/components/` | Client components; `admin/` for HR-only forms |
+| `src/app/(auth)/` | Sign-in and sign-up |
+| `src/app/(app)/` | Everything behind a session; `admin/` for HR-only pages |
+| `test/` | Unit, component, and integration tests |
+
+### Rules worth knowing before changing anything
+
+- **Authorisation is per-action, not per-route.** `requireUser()` and
+  `requireAdmin()` from `src/lib/auth.ts` run inside server components *and*
+  inside every server action. Adding a mutation without one silently makes it
+  public. There is no middleware doing this for you.
+- **Dates are local `YYYY-MM-DD` strings**, matching Postgres `date` columns.
+  Use the helpers in `src/lib/dates.ts`; constructing `new Date(key)` parses as
+  UTC and shifts the day.
+- **Numeric columns come back as strings.** Coerce through `src/lib/money.ts`
+  rather than adding them directly.
+- **`useFields` (`src/components/useFields.ts`) is required for any form using a
+  server action.** React resets the form once the action settles and will not
+  re-apply an unchanged controlled value, so a plain `<select>` reverts to its
+  first option while state still holds the real one. The hook also adopts
+  password-manager autofill on first commit. Both behaviours have regression
+  tests; do not bypass it.
+- **Business rules the requirements document left open** live in
+  `src/lib/attendance.ts` (status thresholds) and `src/lib/leave.ts` (quotas,
+  weekend handling). They are documented in README.md and covered by tests.
 
 ## Next.js 16 specifics that differ from older conventions
 
@@ -27,14 +69,18 @@ Read `node_modules/next/dist/docs/` before writing routing, data-fetching, or ca
 - `01-app/02-guides/` — authentication, forms, environment variables, deploying, upgrading
 - `01-app/03-api-reference/` — per-API detail
 
-Already visible in the scaffold:
+In use here:
 
-- Route component props come from **globally injected types** keyed by route path, e.g. `RootLayout({ children }: LayoutProps<"/">)` in [layout.tsx](src/app/layout.tsx). These are generated into `.next/types/` — they exist without an import, and they only typecheck after a `dev`/`build` run has generated them.
+- Route component props come from **globally injected types** keyed by route path, e.g. `RootLayout({ children }: LayoutProps<"/">)` in [layout.tsx](src/app/layout.tsx) and `PageProps<"/admin/employees/[employeeId]">`. These are generated into `.next/types/` — they exist without an import, and a new route will not typecheck until a `dev`/`build` run has generated them.
+- `params` and `searchParams` are promises; `cookies()` is async.
 - App Router by default; `src/` layout, so app code lives in `src/app/`.
+- `src/app/page.tsx` is `force-dynamic`. It branches on the session cookie, and Next otherwise prerenders it and sends signed-in users to `/signin`.
 
 ## Styling
 
-Tailwind CSS v4 via `@tailwindcss/postcss` — configured **in CSS, not in a `tailwind.config.js`**. Design tokens live in [globals.css](src/app/globals.css): CSS custom properties on `:root` (with a `prefers-color-scheme: dark` override), exposed to Tailwind through the `@theme inline` block as `--color-background`, `--color-foreground`, `--font-sans`, `--font-mono`. Add new tokens there rather than creating a config file.
+Tailwind CSS v4 via `@tailwindcss/postcss` — configured **in CSS, not in a `tailwind.config.js`**. Design tokens live in [globals.css](src/app/globals.css): CSS custom properties on `:root` (with a `prefers-color-scheme: dark` override), exposed to Tailwind through the `@theme inline` block. Add new tokens there rather than creating a config file.
+
+Shared component classes (`.card`, `.input`, `.btn-primary`, `.pill`, `.th`, `.td`) are defined in the same file. **Tailwind v4 cannot `@apply` one component class from another** — `@apply btn` inside `.btn-primary` fails the build — so shared button rules are declared once across all four selectors.
 
 Fonts are loaded with `next/font/google` (Geist / Geist Mono) in `layout.tsx` and bound to the CSS variables the theme block references.
 
