@@ -39,8 +39,9 @@ the requirements document.
   every save is kept as a dated revision rather than overwriting the last one.
 - **Tests and CI.** 148 tests: unit tests for the business rules, component tests
   for the forms, and integration tests that run the real server actions against a
-  real Postgres database. GitHub Actions runs typecheck, tests, and build on
-  every push and pull request.
+  real Postgres database. A GitHub Actions workflow covering typecheck, tests,
+  and build is written and parked in `ci/`, but is not active yet — committing
+  it needs a token with `workflow` scope.
 
 ### Fixed
 

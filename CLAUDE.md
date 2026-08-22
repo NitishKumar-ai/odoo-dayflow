@@ -16,7 +16,7 @@ npm run db:push   # apply src/db/schema.ts to DATABASE_URL
 npm run db:seed   # wipe and reseed demo data
 ```
 
-There is no linter. CI (`.github/workflows/test.yml`) runs typecheck, tests, and build on every push and pull request.
+There is no linter and no CI running yet. A ready-to-use GitHub Actions workflow sits in `ci/` — it needs a token with `workflow` scope before it can be committed to `.github/workflows/` (see `ci/README.md`). Until then run the checks yourself: `npm run typecheck && npm test && npm run build`.
 
 ## What this is
 
