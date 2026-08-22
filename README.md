@@ -69,15 +69,21 @@ For a presenter's script and the current demo password, see [DEMO.md](DEMO.md).
 | `npm run db:seed` | Wipe and reseed demo data |
 | `npm run typecheck` | `tsc --noEmit` |
 
+The seed command refuses to run with `NODE_ENV=production` unless
+`ALLOW_DEMO_SEED=true` is explicitly set. It always deletes existing data, so
+never enable it for a real company database.
+
 ## Documentation
 
+- **[GitHub Wiki](https://github.com/NitishKumar-ai/odoo-dayflow/wiki)** — The long-form manual: architecture, data model, per-module guides (attendance, auth, leave, payroll), setup, testing, and deploying. Source lives in [`wiki/`](wiki/).
 - **[Routing & Pages Guide](docs/ROUTING_PAGES.md)** — Layout hierarchies, route parameters, authorization checks, and page breakdown.
 - **[Server Actions API Reference](docs/SERVER_ACTIONS_API.md)** — Zod schemas, state signatures, business rules, and mutation side-effects.
 - **[Database Schema Reference](docs/DATABASE_SCHEMA.md)** — Drizzle ORM entity models, Postgres column types, constraints, and ERD.
 
-The seed command refuses to run with `NODE_ENV=production` unless
-`ALLOW_DEMO_SEED=true` is explicitly set. It always deletes existing data, so
-never enable it for a real company database.
+## Project status
+
+- **[Dayflow Delivery board](https://github.com/users/NitishKumar-ai/projects/12)** — The plan of record: epics, their sub-issues, and what is open. Moving an item to Done there closes its issue.
+- **In-app delivery dashboard** — `/admin/project` ([`src/app/(app)/admin/project/page.tsx`](src/app/(app)/admin/project/page.tsx)), HR-only. Mirrors the board's open sub-issues by number and logs the pull requests merged since the core release, so drift between the two is visible.
 
 ## How the spec maps to the code
 
@@ -89,7 +95,7 @@ never enable it for a real company database.
 | 3.4 Attendance (check-in/out, daily + weekly) | `src/app/(app)/attendance/`, `src/app/(app)/admin/attendance/`, `src/actions/attendance.ts` |
 | 3.5 Leave apply + approve | `src/app/(app)/leave/`, `src/app/(app)/admin/leave/`, `src/actions/leave.ts` |
 | 3.6 Payroll (read-only / admin edit) | `src/app/(app)/payroll/`, `src/app/(app)/admin/payroll/` |
-| Delivery progress (beyond the spec) | `src/app/(app)/admin/project/` |
+| Delivery progress (beyond the spec) | `src/app/(app)/admin/project/`, mirroring the [delivery board](https://github.com/users/NitishKumar-ai/projects/12) |
 
 Authorisation lives in `src/lib/auth.ts`: `requireUser()` and `requireAdmin()`
 run in server components and in every server action, so a URL alone never grants

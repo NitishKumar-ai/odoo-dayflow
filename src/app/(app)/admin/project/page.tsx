@@ -15,38 +15,45 @@ const shippedModules = [
   { name: "Attendance", detail: "Check-in/out, weekly records and HR overrides" },
   { name: "Leave workflows", detail: "Balances, requests, approvals and attendance sync" },
   { name: "Payroll", detail: "Salary visibility, admin editing and revision history" },
-  { name: "Automated tests", detail: "172 unit, component and integration tests" },
+  { name: "Automated tests", detail: "221 unit, component and integration tests" },
 ];
 
+// Mirrors the open sub-issues of "Epic: v0.2 release readiness" (#17).
 const roadmap = [
   {
+    issue: 10,
     title: "Send verification email",
     area: "Authentication",
     priority: "P0",
     effort: "M",
     state: "Blocked",
     dependency: "Mail provider account and API key",
-    description: "Deliver the existing single-use verification link and add a resend path.",
+    description:
+      "The single-use link is still only written to the server log. Deliver it by email and add a resend path.",
   },
   {
+    issue: 11,
     title: "Upload employee documents",
     area: "Employee profile",
     priority: "P1",
     effort: "M",
     state: "Blocked",
     dependency: "Private file-storage provider",
-    description: "Add secure HR uploads and employee-only downloads for profile documents.",
+    description:
+      "The documents table exists; the upload action and employee-only download route do not.",
   },
   {
+    issue: 12,
     title: "Turn on CI",
     area: "Infrastructure",
     priority: "P1",
     effort: "S",
     state: "Ready",
     dependency: "GitHub token with workflow scope",
-    description: "Move the prepared workflow into .github/workflows so every change is checked.",
+    description: "Move the prepared workflow in ci/ into .github/workflows so every change is checked.",
   },
   {
+    issue: 13,
     title: "Add end-to-end tests",
     area: "Testing",
     priority: "P2",
@@ -56,22 +63,37 @@ const roadmap = [
     description: "Cover sign-up, attendance, leave application and HR approval in a browser.",
   },
   {
-    title: "Deploy a shared environment",
-    area: "Infrastructure",
-    priority: "P2",
-    effort: "M",
-    state: "Ready",
-    dependency: "Managed Postgres and hosting target",
-    description: "Create a hosted app, production secrets and a safe migration step.",
-  },
-  {
+    issue: 15,
     title: "Payslips and reports",
     area: "Payroll",
     priority: "P3",
     effort: "L",
-    state: "Planned",
-    dependency: "Pay-period data model",
-    description: "Record payroll runs before generating stable monthly payslips and reports.",
+    state: "In progress",
+    dependency: "Admin screens for the payroll-run actions",
+    description:
+      "Payroll runs, salary snapshots and payslips are implemented and tested in src/lib/payroll.ts; no screen or server action reaches them yet, and reports are not started.",
+  },
+] as const;
+
+// Merged pull requests since the v0.1 core release, newest first.
+const delivered = [
+  {
+    pr: 22,
+    title: "Deployment prep: dashboard fix, seed typecheck fix, landing page",
+    note: "Payroll tables added to the migration and seed reset lists",
+  },
+  { pr: 21, title: "Wiki documentation suite", note: "Architecture, data model, routes and testing guides" },
+  { pr: 20, title: "Documentation for the full application", note: "Attendance, auth, leave, payroll, deploying" },
+  {
+    pr: 18,
+    title: "Vercel configuration and versioned migrations",
+    note: "Closed the shared-environment work (#14) — v0.2.0.1",
+  },
+  { pr: 3, title: "Routing pages and project architecture guide", note: "Spec-to-code map in the README" },
+  {
+    pr: 2,
+    title: "Visual rebuild, delivery page, payroll runs, atomic leave",
+    note: "v0.2.0.0 — payroll snapshots and finalisation landed here",
   },
 ] as const;
 
@@ -85,7 +107,7 @@ const priorityTone = {
 const stateTone = {
   Blocked: "text-danger",
   Ready: "text-success",
-  Planned: "text-muted",
+  "In progress": "text-warning",
 };
 
 export default async function ProjectDashboardPage() {
@@ -107,7 +129,7 @@ export default async function ProjectDashboardPage() {
               Dayflow project progress
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-              The core HRMS is working. The next release is about making it usable outside a developer machine: email, CI, secure files, browser coverage and hosting.
+              The core HRMS is working and now runs on a hosted environment with versioned migrations. What is left of the v0.2 epic is email delivery, secure files, active CI, browser coverage and the payroll-run screens.
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted px-4 py-3">
@@ -116,7 +138,7 @@ export default async function ProjectDashboardPage() {
             </span>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">Current release</p>
-              <p className="font-bold text-foreground">v0.1.0 · Core scope shipped</p>
+              <p className="font-bold text-foreground">v0.2.0.1 · Deployed</p>
             </div>
           </div>
         </div>
@@ -127,7 +149,7 @@ export default async function ProjectDashboardPage() {
 
       <section aria-label="Project summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Core modules" value="6 / 6" note="Requirements 3.1–3.6" icon={<IconCheckCircle size={20} />} tone="text-success bg-success-soft" />
-        <Metric label="Automated tests" value="172" note="Unit, component, integration" icon={<IconShield size={20} />} tone="text-brand bg-brand-soft" />
+        <Metric label="Automated tests" value="221" note="25 files · unit, component, integration" icon={<IconShield size={20} />} tone="text-brand bg-brand-soft" />
         <Metric label="Ready to start" value={String(readyCount)} note="No product decision needed" icon={<IconClock size={20} />} tone="text-brand bg-brand-soft" />
         <Metric label="External blockers" value={String(blockedCount)} note="Provider credentials needed" icon={<IconAlertCircle size={20} />} tone="text-danger bg-danger-soft" />
       </section>
@@ -150,6 +172,17 @@ export default async function ProjectDashboardPage() {
                 </div>
               </div>
             ))}
+            <div className="flex gap-3 rounded-xl px-2 py-3">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-success-soft text-success">
+                <IconCheck size={13} />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Shared environment</h3>
+                <p className="mt-0.5 text-xs leading-5 text-muted">
+                  Hosted deployment, production secrets and versioned migrations
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -159,12 +192,12 @@ export default async function ProjectDashboardPage() {
               <p className="text-xs font-bold uppercase tracking-wider text-brand">Next up</p>
               <h2 className="mt-1 text-lg font-bold text-foreground">Delivery roadmap</h2>
             </div>
-            <p className="text-xs text-muted">Ordered by priority, then readiness</p>
+            <p className="text-xs text-muted">Open sub-issues of the v0.2 epic</p>
           </div>
           <div className="divide-y divide-line">
-            {roadmap.map((item, index) => (
-              <article key={item.title} className="grid gap-4 p-5 transition-colors hover:bg-surface-muted/50 sm:grid-cols-[2rem_1fr_auto] sm:p-6">
-                <span className="text-sm font-bold tabular-nums text-muted/60">{String(index + 1).padStart(2, "0")}</span>
+            {roadmap.map((item) => (
+              <article key={item.title} className="grid gap-4 p-5 transition-colors hover:bg-surface-muted/50 sm:grid-cols-[3rem_1fr_auto] sm:p-6">
+                <span className="text-sm font-bold tabular-nums text-muted/60">#{item.issue}</span>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-bold text-foreground">{item.title}</h3>
@@ -189,10 +222,31 @@ export default async function ProjectDashboardPage() {
         </section>
       </div>
 
+      <section className="card overflow-hidden">
+        <div className="flex flex-col gap-2 border-b border-line p-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-brand">Change log</p>
+            <h2 className="mt-1 text-lg font-bold text-foreground">Merged since the core release</h2>
+          </div>
+          <p className="text-xs text-muted">Newest first</p>
+        </div>
+        <ul className="divide-y divide-line">
+          {delivered.map((item) => (
+            <li key={item.pr} className="grid gap-3 p-5 sm:grid-cols-[4rem_1fr] sm:p-6">
+              <span className="text-sm font-bold tabular-nums text-muted/60">#{item.pr}</span>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">{item.title}</h3>
+                <p className="mt-1 text-xs leading-5 text-muted">{item.note}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className="grid gap-4 rounded-2xl border border-line bg-surface-muted/50 p-5 sm:grid-cols-3 sm:p-6">
         <Gate title="Product" state="Ready" detail="Core employee and HR workflows are implemented." />
-        <Gate title="Quality" state="Partial" detail="Integration coverage exists; browser flows and active CI remain." />
-        <Gate title="Operations" state="Not ready" detail="Email delivery, migrations and a hosted environment remain." />
+        <Gate title="Quality" state="Partial" detail="221 tests pass locally; browser flows and active CI remain." />
+        <Gate title="Operations" state="Partial" detail="Hosted and migrated; email delivery and secure file storage remain." />
       </section>
     </div>
   );

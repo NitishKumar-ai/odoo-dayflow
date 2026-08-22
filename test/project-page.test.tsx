@@ -33,8 +33,8 @@ describe("admin project dashboard", () => {
     const ready = screen.getByText("Ready to start").closest("div");
     const blocked = screen.getByText("External blockers").closest("div");
 
-    // 3 Ready items, 2 Blocked items, 1 Planned in the roadmap.
-    expect(ready?.parentElement).toHaveTextContent("3");
+    // 2 Ready items, 2 Blocked items, 1 In progress in the roadmap.
+    expect(ready?.parentElement).toHaveTextContent("2");
     expect(blocked?.parentElement).toHaveTextContent("2");
   });
 
@@ -58,5 +58,25 @@ describe("admin project dashboard", () => {
     expect(within(completed).getByText("Payroll")).toBeInTheDocument();
     expect(within(completed).getByText("Attendance")).toBeInTheDocument();
     expect(screen.getByText("6 / 6")).toBeInTheDocument();
+  });
+
+  it("logs the pull requests merged since the core release", async () => {
+    render(await ProjectDashboardPage());
+
+    const log = screen
+      .getByRole("heading", { name: "Merged since the core release" })
+      .closest("section") as HTMLElement;
+
+    expect(within(log).getByText("#22")).toBeInTheDocument();
+    expect(within(log).getByText("Vercel configuration and versioned migrations")).toBeInTheDocument();
+  });
+
+  it("marks the payroll run work as in progress rather than planned", async () => {
+    render(await ProjectDashboardPage());
+
+    const item = screen.getByText("Payslips and reports").closest("article") as HTMLElement;
+
+    expect(within(item).getByText("In progress")).toBeInTheDocument();
+    expect(screen.queryByText("Planned")).not.toBeInTheDocument();
   });
 });
