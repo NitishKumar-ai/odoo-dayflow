@@ -293,3 +293,42 @@ describe("decideLeaveAction", () => {
     expect(res.ok).toBeTruthy();
   });
 });
+
+describe("concurrent submits", () => {
+  /**
+   * Regression: the overlap and balance checks were read-then-write, so two
+   * requests landing together could both pass and both insert, taking the
+   * employee past their entitlement. The employee row is locked now.
+   */
+  it("lets only one of two simultaneous identical requests through", async () => {
+    const submit = () =>
+      applyLeaveAction({}, form({
+        leaveType: "paid", startDate: MON, endDate: FRI, remarks: "",
+      }));
+
+    const results = await Promise.all([submit(), submit()]);
+
+    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    expect(results.filter((r) => r.error)).toHaveLength(1);
+    expect(await db.select().from(leaveRequests)).toHaveLength(1);
+  });
+
+  it("does not let simultaneous requests exceed the balance between them", async () => {
+    const tight = await seedEmployee({ firstName: "Tight", year: 2026, paidDays: 5 });
+    actAs({ ...tight, role: "employee" });
+
+    // Two non-overlapping 5-day requests; only one can fit in a 5-day balance.
+    const results = await Promise.all([
+      applyLeaveAction({}, form({
+        leaveType: "paid", startDate: MON, endDate: FRI, remarks: "",
+      })),
+      applyLeaveAction({}, form({
+        leaveType: "paid", startDate: "2026-09-14", endDate: "2026-09-18", remarks: "",
+      })),
+    ]);
+
+    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    const rows = await db.select().from(leaveRequests);
+    expect(rows.reduce((n, r) => n + r.days, 0)).toBeLessThanOrEqual(5);
+  });
+});

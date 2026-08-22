@@ -41,12 +41,23 @@ export async function checkInAction(
       .set({ checkInAt: now, status: existing.isManual ? existing.status : "present" })
       .where(eq(attendance.id, existing.id));
   } else {
-    await db.insert(attendance).values({
-      employeeId: user.employeeId,
-      workDate,
-      checkInAt: now,
-      status: "present",
-    });
+    // A double-click fires two check-ins at once; both see no row and both
+    // insert. The unique index catches the loser, so treat that as "already
+    // checked in" rather than letting a raw query error reach the employee.
+    const inserted = await db
+      .insert(attendance)
+      .values({
+        employeeId: user.employeeId,
+        workDate,
+        checkInAt: now,
+        status: "present",
+      })
+      .onConflictDoNothing({ target: [attendance.employeeId, attendance.workDate] })
+      .returning({ id: attendance.id });
+
+    if (inserted.length === 0) {
+      return { error: "You have already checked in today." };
+    }
   }
 
   await logActivity(user.employeeId, "attendance", `Checked in for ${formatDate(workDate)}`);
@@ -106,9 +117,15 @@ export async function setAttendanceStatusAction(
       .set({ status, note, isManual: true })
       .where(eq(attendance.id, existing.id));
   } else {
+    // Two admins can save the same cell at once; last write wins rather than
+    // failing on the unique index.
     await db
       .insert(attendance)
-      .values({ employeeId, workDate, status, note, isManual: true });
+      .values({ employeeId, workDate, status, note, isManual: true })
+      .onConflictDoUpdate({
+        target: [attendance.employeeId, attendance.workDate],
+        set: { status, note, isManual: true },
+      });
   }
 
   await logActivity(
