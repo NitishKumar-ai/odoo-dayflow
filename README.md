@@ -63,7 +63,9 @@ spread of leave requests including two awaiting approval.
 
 ## Documentation
 
-For a detailed technical guide on all application routes, layout hierarchies, parameters, authorization checks, and server actions, see [docs/ROUTING_PAGES.md](docs/ROUTING_PAGES.md).
+- **[Routing & Pages Guide](docs/ROUTING_PAGES.md)** — Layout hierarchies, route parameters, authorization checks, and page breakdown.
+- **[Server Actions API Reference](docs/SERVER_ACTIONS_API.md)** — Zod schemas, state signatures, business rules, and mutation side-effects.
+- **[Database Schema Reference](docs/DATABASE_SCHEMA.md)** — Drizzle ORM entity models, Postgres column types, constraints, and ERD.
 
 ## How the spec maps to the code
 

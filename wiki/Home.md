@@ -304,5 +304,13 @@ Conventions worth matching when you add code:
 - No `db:push` / `db:seed` scripts in `package.json`, and no committed
   migrations under `drizzle/`.
 - No payslip generation, no payroll run — only the salary structure is modelled.
-- No linter, test runner, or CI. `npx tsc --noEmit` is the only check.
 - `employees.manager_id` is unused by any feature.
+
+---
+
+## Technical Documentation Suite
+
+For exhaustive technical reference guides, see:
+- [Routing & Pages Documentation](../docs/ROUTING_PAGES.md)
+- [Server Actions API Reference](../docs/SERVER_ACTIONS_API.md)
+- [Database Schema & ERD Reference](../docs/DATABASE_SCHEMA.md)
