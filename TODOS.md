@@ -85,6 +85,25 @@ payslips get regenerated from current data and silently change after a raise.
 
 ## Infrastructure
 
+### Turn on CI
+
+**What:** Move `ci/github-actions-test.yml` into `.github/workflows/test.yml` so
+typecheck, tests, and build run on every push and pull request.
+
+**Why:** The workflow is written and the suite is green, but nothing runs it
+automatically. Every check is currently a thing someone has to remember.
+
+**Context:** Blocked only on credentials: pushing a workflow file needs a GitHub
+token with `workflow` scope, and this repository's token has `repo` but not
+`workflow`. `gh auth refresh -h github.com -s workflow` grants it, then the file
+moves into place. Full steps in `ci/README.md`. The workflow already runs a
+Postgres 15 service for the integration tests and declares read-only
+repository permissions.
+
+**Effort:** S
+**Priority:** P1
+**Depends on:** A token with `workflow` scope.
+
 ### Deploy the app somewhere
 
 **What:** Stand up a hosted environment with a managed Postgres.

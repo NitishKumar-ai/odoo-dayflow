@@ -49,6 +49,9 @@ Create it once locally:
 createdb dayflow_test
 ```
 
+There is no CI running these yet. `ci/github-actions-test.yml` is ready to go
+and includes a Postgres service; see `ci/README.md` for how to enable it.
+
 Two gotchas worth knowing. `vi.useFakeTimers()` must be scoped with
 `{ toFake: ["Date"] }` — faking `setTimeout` deadlocks the Postgres driver.
 And `vi.mock` is hoisted above imports, so its factory has to be written
