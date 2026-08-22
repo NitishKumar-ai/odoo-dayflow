@@ -5,10 +5,7 @@ import { Avatar } from "@/components/Avatar";
 import {
   IconEmployees,
   IconSearch,
-  IconPlus,
   IconArrowUpRight,
-  IconBuilding,
-  IconBriefcase,
 } from "@/components/Icons";
 
 type Props = {

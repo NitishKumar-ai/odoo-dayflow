@@ -10,7 +10,7 @@ import {
 } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { today, weekRange, formatTime, formatDate, formatDay } from "@/lib/dates";
-import { STATUS_LABEL, STATUS_TONE, workedHours } from "@/lib/attendance";
+import { STATUS_LABEL, STATUS_TONE } from "@/lib/attendance";
 import { leaveSummary } from "@/lib/leave-queries";
 import { getCurrentSalary } from "@/lib/employee-queries";
 import { formatMoney, net } from "@/lib/money";
@@ -26,7 +26,6 @@ import {
   IconApprovals,
   IconArrowRight,
   IconSparkles,
-  IconTrendingUp,
   IconClock,
   IconCheckCircle,
 } from "@/components/Icons";
@@ -68,7 +67,6 @@ export default async function DashboardPage() {
     .orderBy(desc(leaveRequests.createdAt))
     .limit(5);
 
-  const pendingCount = myLeave.filter((l) => l.status === "pending").length;
   const balances = await leaveSummary(user.employeeId, year);
   const salary = await getCurrentSalary(user.employeeId);
 

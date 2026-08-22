@@ -5,20 +5,13 @@ import {
   getDocuments,
 } from "@/lib/employee-queries";
 import { formatDate } from "@/lib/dates";
-import { formatMoney, gross, net } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
 import { ProfileForm } from "@/components/ProfileForm";
 import { SalaryCard } from "@/components/SalaryCard";
 import {
   IconUser,
   IconBriefcase,
-  IconMail,
-  IconPhone,
-  IconMapPin,
-  IconBuilding,
   IconFileText,
-  IconShield,
-  IconSparkles,
 } from "@/components/Icons";
 
 const EMPLOYMENT_LABEL: Record<string, string> = {

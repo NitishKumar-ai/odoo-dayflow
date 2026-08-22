@@ -1,7 +1,6 @@
-import React from "react";
 import { formatMoney, gross, net } from "@/lib/money";
 import { formatDate } from "@/lib/dates";
-import { IconPayroll, IconCheckCircle } from "@/components/Icons";
+import { IconCheckCircle } from "@/components/Icons";
 import type { SalaryStructure } from "@/db";
 
 export function SalaryCard({

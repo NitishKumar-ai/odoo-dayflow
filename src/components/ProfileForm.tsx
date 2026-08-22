@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { updateOwnProfileAction, type ActionResult } from "@/actions/profile";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
-import { IconCheck, IconPhone, IconMapPin, IconSparkles } from "@/components/Icons";
+import { IconSparkles } from "@/components/Icons";
 
 const initial: ActionResult = {};
 

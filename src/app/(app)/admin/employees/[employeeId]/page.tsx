@@ -37,8 +37,6 @@ import {
   IconPayroll,
   IconAttendance,
   IconFileText,
-  IconSparkles,
-  IconTrendingUp,
 } from "@/components/Icons";
 
 type Props = {

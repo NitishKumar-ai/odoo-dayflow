@@ -15,10 +15,8 @@ import { STATUS_LABEL, STATUS_TONE, workedHours } from "@/lib/attendance";
 import { Avatar } from "@/components/Avatar";
 import { AttendanceOverride } from "@/components/admin/AttendanceOverride";
 import {
-  IconAttendance,
   IconArrowLeft,
   IconArrowRight,
-  IconClock,
 } from "@/components/Icons";
 
 type Props = {
