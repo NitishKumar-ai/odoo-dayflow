@@ -16,27 +16,27 @@ export type StatCardProps = {
 
 const toneStyles = {
   brand: {
-    bg: "bg-blue-50/70 dark:bg-blue-950/30",
-    border: "border-blue-200/80 dark:border-blue-800/40",
+    bg: "bg-brand-soft/70",
+    border: "border-brand/30",
     iconBg: "bg-brand text-white",
     value: "text-foreground",
   },
   success: {
-    bg: "bg-emerald-50/70 dark:bg-emerald-950/30",
-    border: "border-emerald-200/80 dark:border-emerald-800/40",
-    iconBg: "bg-emerald-600 text-white",
+    bg: "bg-brand-soft/55",
+    border: "border-brand/25",
+    iconBg: "bg-brand text-white",
     value: "text-foreground",
   },
   warning: {
-    bg: "bg-amber-50/70 dark:bg-amber-950/30",
-    border: "border-amber-200/80 dark:border-amber-800/40",
-    iconBg: "bg-amber-600 text-white",
+    bg: "bg-daylight/20",
+    border: "border-daylight",
+    iconBg: "bg-daylight text-foreground",
     value: "text-foreground",
   },
   danger: {
-    bg: "bg-rose-50/70 dark:bg-rose-950/30",
-    border: "border-rose-200/80 dark:border-rose-800/40",
-    iconBg: "bg-rose-600 text-white",
+    bg: "bg-danger-soft/70",
+    border: "border-danger/30",
+    iconBg: "bg-danger text-white",
     value: "text-foreground",
   },
   neutral: {
@@ -67,12 +67,12 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted">{title}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
+          <p className="mt-2 font-mono text-3xl font-medium tracking-tight tabular-nums text-foreground">
             {value}
           </p>
         </div>
         {icon && (
-          <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl shadow-xs ${styles.iconBg}`}>
+          <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-md ${styles.iconBg}`}>
             {icon}
           </div>
         )}

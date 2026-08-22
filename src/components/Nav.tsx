@@ -36,7 +36,7 @@ export function Nav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center gap-1.5">
+    <nav className="flex flex-nowrap items-center gap-1 lg:justify-center">
       {items.map((item) => {
         const active =
           pathname === item.href ||
@@ -48,17 +48,17 @@ export function Nav({ items }: { items: NavItem[] }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`group relative flex min-h-11 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
+            className={`group relative flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition-all duration-150 ${
               active
-                ? "bg-brand text-white shadow-xs shadow-brand/25 font-semibold"
-                : "text-muted hover:bg-surface-muted hover:text-foreground"
+                ? "bg-foreground text-surface shadow-[3px_3px_0_var(--signal)] font-semibold"
+                : "text-muted hover:bg-surface hover:text-foreground"
             }`}
           >
             {IconComponent && (
               <IconComponent
                 size={16}
                 className={`transition-colors ${
-                  active ? "text-white" : "text-muted group-hover:text-foreground"
+                  active ? "text-surface" : "text-muted group-hover:text-foreground"
                 }`}
               />
             )}
@@ -67,7 +67,7 @@ export function Nav({ items }: { items: NavItem[] }) {
               <span
                 className={`ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums ${
                   active
-                    ? "bg-white text-brand"
+                    ? "bg-daylight text-foreground"
                     : "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
                 }`}
               >
