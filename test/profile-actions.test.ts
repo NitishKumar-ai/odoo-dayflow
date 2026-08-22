@@ -5,7 +5,12 @@ import { resetDb, seedEmployee, type SeededEmployee } from "./helpers/db";
 import { actAs } from "./helpers/session";
 import { db } from "@/db";
 import { employees, users, salaryStructures } from "@/db/schema";
-import { getCurrentSalary, listEmployees } from "@/lib/employee-queries";
+import {
+  getCurrentSalary,
+  getCurrentSalaries,
+  pickCurrentSalary,
+  listEmployees,
+} from "@/lib/employee-queries";
 
 vi.mock("@/lib/auth", async () => (await import("./helpers/session")).authMock());
 
@@ -279,5 +284,77 @@ describe("employee queries", () => {
   it("counts pending leave per employee in the list", async () => {
     const rows = await listEmployees();
     expect(rows.every((r) => r.pendingLeave === 0)).toBe(true);
+  });
+});
+
+describe("getCurrentSalaries (batch)", () => {
+  beforeEach(() => actAs({ ...admin, role: "admin" }));
+
+  it("agrees with the single-employee lookup for every employee", async () => {
+    const other = await seedEmployee({ firstName: "Mei" });
+
+    await updateSalaryAction({}, form({
+      employeeId: employee.employeeId, effectiveFrom: "2020-01-01",
+      currency: "INR", basic: "50000", hra: "0", allowances: "0", deductions: "0",
+    }));
+    await updateSalaryAction({}, form({
+      employeeId: employee.employeeId, effectiveFrom: "2099-01-01",
+      currency: "INR", basic: "99000", hra: "0", allowances: "0", deductions: "0",
+    }));
+    await updateSalaryAction({}, form({
+      employeeId: other.employeeId, effectiveFrom: "2099-06-01",
+      currency: "INR", basic: "70000", hra: "0", allowances: "0", deductions: "0",
+    }));
+
+    const batch = await getCurrentSalaries([employee.employeeId, other.employeeId]);
+
+    // In force today wins over the future revision.
+    expect(Number(batch.get(employee.employeeId)?.basic)).toBe(50000);
+    // Only a future revision exists, so it is used as the fallback.
+    expect(Number(batch.get(other.employeeId)?.basic)).toBe(70000);
+
+    for (const id of [employee.employeeId, other.employeeId]) {
+      const single = await getCurrentSalary(id);
+      expect(batch.get(id)?.id).toBe(single?.id);
+    }
+  });
+
+  it("omits employees with no salary rather than inventing one", async () => {
+    const batch = await getCurrentSalaries([employee.employeeId]);
+    expect(batch.has(employee.employeeId)).toBe(false);
+  });
+
+  it("returns an empty map for an empty request", async () => {
+    expect((await getCurrentSalaries([])).size).toBe(0);
+  });
+});
+
+describe("pickCurrentSalary", () => {
+  const row = (effectiveFrom: string, basic: string) =>
+    ({ id: effectiveFrom, employeeId: "e", effectiveFrom, basic } as never);
+
+  it("prefers the latest revision already in force", () => {
+    const picked = pickCurrentSalary(
+      [row("2024-01-01", "1"), row("2026-01-01", "2"), row("2099-01-01", "3")],
+      "2026-08-22",
+    );
+    expect(picked?.effectiveFrom).toBe("2026-01-01");
+  });
+
+  it("falls back to the soonest upcoming revision", () => {
+    const picked = pickCurrentSalary(
+      [row("2099-06-01", "1"), row("2098-01-01", "2")],
+      "2026-08-22",
+    );
+    expect(picked?.effectiveFrom).toBe("2098-01-01");
+  });
+
+  it("returns null when there is nothing to pick", () => {
+    expect(pickCurrentSalary([], "2026-08-22")).toBeNull();
+  });
+
+  it("treats a revision effective today as in force", () => {
+    const picked = pickCurrentSalary([row("2026-08-22", "1")], "2026-08-22");
+    expect(picked?.effectiveFrom).toBe("2026-08-22");
   });
 });

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, lte, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import { db, employees, users, salaryStructures, documents } from "@/db";
 import { today } from "./dates";
 
@@ -34,6 +34,28 @@ export async function getEmployeeDetail(employeeId: string) {
   return row ?? null;
 }
 
+type SalaryRow = typeof salaryStructures.$inferSelect;
+
+/**
+ * Which revision applies right now: the latest one already in force, or failing
+ * that the soonest upcoming one. Shared by the single- and batch-lookup paths so
+ * the two can never disagree.
+ */
+export function pickCurrentSalary(
+  rows: SalaryRow[],
+  onDate: string = today(),
+): SalaryRow | null {
+  const inForce = rows
+    .filter((r) => r.effectiveFrom <= onDate)
+    .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom));
+  if (inForce.length) return inForce[0];
+
+  const upcoming = [...rows].sort((a, b) =>
+    a.effectiveFrom.localeCompare(b.effectiveFrom),
+  );
+  return upcoming[0] ?? null;
+}
+
 /** The structure in force today; falls back to the earliest future one. */
 export async function getCurrentSalary(employeeId: string) {
   const [current] = await db
@@ -58,6 +80,36 @@ export async function getCurrentSalary(employeeId: string) {
     .limit(1);
 
   return upcoming ?? null;
+}
+
+/**
+ * Batch version of getCurrentSalary. The payroll table needs one row per
+ * employee; calling the single lookup in a loop was one to two queries per
+ * person, so this reads them all at once and picks in memory.
+ */
+export async function getCurrentSalaries(
+  employeeIds: string[],
+): Promise<Map<string, SalaryRow>> {
+  const out = new Map<string, SalaryRow>();
+  if (employeeIds.length === 0) return out;
+
+  const rows = await db
+    .select()
+    .from(salaryStructures)
+    .where(inArray(salaryStructures.employeeId, employeeIds));
+
+  const byEmployee = new Map<string, SalaryRow[]>();
+  for (const row of rows) {
+    const list = byEmployee.get(row.employeeId);
+    if (list) list.push(row);
+    else byEmployee.set(row.employeeId, [row]);
+  }
+
+  for (const [employeeId, list] of byEmployee) {
+    const picked = pickCurrentSalary(list);
+    if (picked) out.set(employeeId, picked);
+  }
+  return out;
 }
 
 export async function getSalaryHistory(employeeId: string) {
