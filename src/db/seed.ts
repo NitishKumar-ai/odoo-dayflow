@@ -52,6 +52,8 @@ async function main() {
       documents,
       activityLog,
       emailVerificationTokens,
+      payrollRuns,
+      payslips,
     },
     { toDateKey },
     { deriveStatus },
