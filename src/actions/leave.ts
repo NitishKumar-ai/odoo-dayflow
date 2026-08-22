@@ -133,7 +133,26 @@ export async function cancelLeaveAction(
   if (!req) return { error: "Request not found." };
   if (req.status !== "pending") return { error: "Only pending requests can be withdrawn." };
 
-  await db.delete(leaveRequests).where(eq(leaveRequests.id, id));
+  // The status check above can go stale: an admin may approve this request
+  // between the select and the delete. Approving writes `leave` attendance
+  // rows, so deleting the request afterwards would strand them — the employee
+  // stays blocked from checking in with no request left to explain it. Repeat
+  // the predicate in the delete and treat "no rows" as the admin winning.
+  const withdrawn = await db
+    .delete(leaveRequests)
+    .where(
+      and(
+        eq(leaveRequests.id, id),
+        eq(leaveRequests.employeeId, user.employeeId),
+        eq(leaveRequests.status, "pending"),
+      ),
+    )
+    .returning({ id: leaveRequests.id });
+
+  if (withdrawn.length === 0) {
+    return { error: "That request was just decided and can no longer be withdrawn." };
+  }
+
   await logActivity(user.employeeId, "leave", "Withdrew a pending leave request");
   revalidatePath("/leave");
   revalidatePath("/admin/leave");
@@ -171,8 +190,14 @@ export async function decideLeaveAction(
     .where(eq(employees.id, req.employeeId))
     .limit(1);
 
+  let alreadyDecided = false;
+
   await db.transaction(async (tx) => {
-    await tx
+    // Two admins deciding at once both pass the pending check above. Carry the
+    // predicate into the update so exactly one transition wins; otherwise an
+    // approve and a reject can interleave and leave `leave` attendance rows
+    // behind a request that ended up rejected.
+    const decided = await tx
       .update(leaveRequests)
       .set({
         status: decision,
@@ -180,7 +205,13 @@ export async function decideLeaveAction(
         decidedByUserId: admin.userId,
         decidedAt: new Date(),
       })
-      .where(eq(leaveRequests.id, id));
+      .where(and(eq(leaveRequests.id, id), eq(leaveRequests.status, "pending")))
+      .returning({ id: leaveRequests.id });
+
+    if (decided.length === 0) {
+      alreadyDecided = true;
+      return;
+    }
 
     if (decision === "approved") {
       const workDays = eachDate(req.startDate, req.endDate).filter((d) => !isWeekend(d));
@@ -200,6 +231,8 @@ export async function decideLeaveAction(
       }
     }
   });
+
+  if (alreadyDecided) return { error: "That request was already decided." };
 
   await logActivity(
     req.employeeId,

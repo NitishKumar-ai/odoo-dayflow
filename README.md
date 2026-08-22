@@ -28,6 +28,7 @@ Create `.env.local`:
 DATABASE_URL=postgres://USER@localhost:5432/dayflow
 SESSION_SECRET=<a long random string>
 APP_URL=http://localhost:3000
+DEMO_SEED_PASSWORD=<a local demo password>
 ```
 
 Then:
@@ -44,7 +45,7 @@ to pick up schema changes. `db:migrate` is the path for a fresh or hosted databa
 
 ### Demo accounts
 
-Seeded with the password `Dayflow#2026`:
+Seeded with the password provided through `DEMO_SEED_PASSWORD`:
 
 | Role | Email |
 |---|---|
@@ -66,6 +67,16 @@ spread of leave requests including two awaiting approval.
 | `npm run db:seed` | Wipe and reseed demo data |
 | `npm run typecheck` | `tsc --noEmit` |
 
+## Documentation
+
+- **[Routing & Pages Guide](docs/ROUTING_PAGES.md)** — Layout hierarchies, route parameters, authorization checks, and page breakdown.
+- **[Server Actions API Reference](docs/SERVER_ACTIONS_API.md)** — Zod schemas, state signatures, business rules, and mutation side-effects.
+- **[Database Schema Reference](docs/DATABASE_SCHEMA.md)** — Drizzle ORM entity models, Postgres column types, constraints, and ERD.
+
+The seed command refuses to run with `NODE_ENV=production` unless
+`ALLOW_DEMO_SEED=true` is explicitly set. It always deletes existing data, so
+never enable it for a real company database.
+
 ## How the spec maps to the code
 
 | Requirement | Where |
@@ -76,6 +87,7 @@ spread of leave requests including two awaiting approval.
 | 3.4 Attendance (check-in/out, daily + weekly) | `src/app/(app)/attendance/`, `src/app/(app)/admin/attendance/`, `src/actions/attendance.ts` |
 | 3.5 Leave apply + approve | `src/app/(app)/leave/`, `src/app/(app)/admin/leave/`, `src/actions/leave.ts` |
 | 3.6 Payroll (read-only / admin edit) | `src/app/(app)/payroll/`, `src/app/(app)/admin/payroll/` |
+| Delivery progress (beyond the spec) | `src/app/(app)/admin/project/` |
 
 Authorisation lives in `src/lib/auth.ts`: `requireUser()` and `requireAdmin()`
 run in server components and in every server action, so a URL alone never grants
