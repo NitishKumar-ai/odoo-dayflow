@@ -6,6 +6,7 @@ import {
   type ActionResult,
 } from "@/actions/attendance";
 import { SubmitButton } from "@/components/SubmitButton";
+import { useFields } from "@/components/useFields";
 
 const initial: ActionResult = {};
 
@@ -21,20 +22,24 @@ export function AttendanceOverride({
   note: string;
 }) {
   const [state, action] = useActionState(setAttendanceStatusAction, initial);
+  // Many of these render per page, so ids must be unique per row.
+  const rowId = `${employeeId}-${workDate}`;
+  const { field } = useFields({ status, note }, rowId);
 
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="employeeId" value={employeeId} />
       <input type="hidden" name="workDate" value={workDate} />
-      <select name="status" defaultValue={status} className="input w-auto py-1.5 text-xs">
+      <label className="sr-only" htmlFor={`${rowId}-status`}>Status</label>
+      <select {...field("status")} className="input w-auto py-1.5 text-xs">
         <option value="present">Present</option>
         <option value="absent">Absent</option>
         <option value="half_day">Half-day</option>
         <option value="leave">Leave</option>
       </select>
+      <label className="sr-only" htmlFor={`${rowId}-note`}>Note</label>
       <input
-        name="note"
-        defaultValue={note}
+        {...field("note")}
         placeholder="Note"
         className="input w-40 py-1.5 text-xs"
       />
