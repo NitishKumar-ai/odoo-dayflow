@@ -1,0 +1,57 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# npm ci runs third-party lifecycle scripts; give them no write access.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dayflow_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/dayflow_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Integration tests push the Drizzle schema into TEST_DATABASE_URL first
+      # (see test/global-setup.ts), so no migration step is needed here.
+      - name: Tests
+        run: npm test
+
+      # The Postgres client is lazy, so a placeholder URL is enough to build.
+      # No database is contacted: every data-touching route is dynamic.
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgres://ci@localhost:5432/dayflow
+          SESSION_SECRET: ci-build-only-secret-not-used-at-runtime

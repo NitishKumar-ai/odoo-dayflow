@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useState, useMemo } from "react";
+import { useActionState, useMemo } from "react";
 import { applyLeaveAction, type ActionResult } from "@/actions/leave";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
-import { IconLeave, IconBriefcase, IconSparkles } from "@/components/Icons";
+import { IconLeave, IconSparkles } from "@/components/Icons";
+import { useFields } from "@/components/useFields";
 import { countLeaveDays } from "@/lib/leave";
 
 const initial: ActionResult = {};
@@ -17,35 +18,24 @@ export function LeaveForm({
   balances?: { leaveType: string; left: number; entitled: number }[];
 }) {
   const [state, action] = useActionState(applyLeaveAction, initial);
-  const [values, setValues] = useState({
+  const { values, field, setValues } = useFields({
     leaveType: "paid",
     startDate: "",
     endDate: "",
     remarks: "",
   });
 
-  function set<K extends keyof typeof values>(key: K, value: string) {
-    setValues((v) => {
-      const next = { ...v, [key]: value };
-      // If start date is moved past end date, align end date
-      if (key === "startDate" && next.endDate && next.endDate < value) {
-        next.endDate = value;
-      }
-      return next;
-    });
-  }
-
-  // Calculate working days excluding weekends
+  const startDateField = field("startDate");
   const calculatedDays = useMemo(() => {
     if (!values.startDate || !values.endDate) return 0;
     if (values.endDate < values.startDate) return 0;
     return countLeaveDays(values.startDate, values.endDate);
   }, [values.startDate, values.endDate]);
 
-  const selectedBalance = balances.find((b) => b.leaveType === values.leaveType);
+  const selectedBalance = balances.find((balance) => balance.leaveType === values.leaveType);
   const isOverBalance =
     values.leaveType !== "unpaid" &&
-    selectedBalance &&
+    selectedBalance !== undefined &&
     calculatedDays > selectedBalance.left;
 
   return (
@@ -53,62 +43,47 @@ export function LeaveForm({
       {state.error ? <Alert tone="error">{state.error}</Alert> : null}
       {state.ok ? <Alert tone="success">{state.ok}</Alert> : null}
 
-      {/* Leave Type Select */}
       <div>
-        <label className="label" htmlFor="leaveType">
-          Leave Category
-        </label>
-        <div className="relative">
-          <select
-            id="leaveType"
-            name="leaveType"
-            className="input font-medium"
-            value={values.leaveType}
-            onChange={(e) => set("leaveType", e.target.value)}
-          >
-            <option value="paid">Paid Annual Leave</option>
-            <option value="sick">Sick / Medical Leave</option>
-            <option value="unpaid">Unpaid Leave of Absence</option>
-          </select>
-        </div>
+        <label className="label" htmlFor="leaveType">Leave type</label>
+        <select {...field("leaveType")} className="input font-medium">
+          <option value="paid">Paid Annual Leave</option>
+          <option value="sick">Sick / Medical Leave</option>
+          <option value="unpaid">Unpaid Leave of Absence</option>
+        </select>
       </div>
 
-      {/* Date Range Selection */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="startDate">
-            From (Start Date)
-          </label>
+          <label className="label" htmlFor="startDate">From</label>
           <input
-            id="startDate"
-            name="startDate"
+            {...startDateField}
             type="date"
             required
+            min={minDate}
             className="input"
-            value={values.startDate}
-            onChange={(e) => set("startDate", e.target.value)}
+            onChange={(event) => {
+              startDateField.onChange(event);
+              const startDate = event.target.value;
+              if (values.endDate && values.endDate < startDate) {
+                setValues((current) => ({ ...current, endDate: startDate }));
+              }
+            }}
           />
         </div>
 
         <div>
-          <label className="label" htmlFor="endDate">
-            To (End Date)
-          </label>
+          <label className="label" htmlFor="endDate">To</label>
           <input
-            id="endDate"
-            name="endDate"
+            {...field("endDate")}
             type="date"
             required
             min={values.startDate || minDate}
             className="input"
-            value={values.endDate}
-            onChange={(e) => set("endDate", e.target.value)}
           />
         </div>
       </div>
 
-      {/* Live Calculated Days Badge */}
-      {calculatedDays > 0 && (
+      {calculatedDays > 0 ? (
         <div
           className={`flex items-center justify-between rounded-xl border p-3 text-xs ${
             isOverBalance
@@ -118,29 +93,21 @@ export function LeaveForm({
         >
           <div className="flex items-center gap-1.5 font-bold">
             <IconLeave size={14} />
-            <span>
-              Requesting {calculatedDays} working day{calculatedDays === 1 ? "" : "s"}
-            </span>
+            <span>Requesting {calculatedDays} working day{calculatedDays === 1 ? "" : "s"}</span>
           </div>
           <span className="font-semibold">
-            {isOverBalance ? "⚠️ Exceeds quota!" : "Excludes weekends"}
+            {isOverBalance ? "Exceeds quota" : "Excludes weekends"}
           </span>
         </div>
-      )}
+      ) : null}
 
-      {/* Remarks */}
       <div>
-        <label className="label" htmlFor="remarks">
-          Reason / Remarks (Optional)
-        </label>
+        <label className="label" htmlFor="remarks">Reason / Remarks (Optional)</label>
         <textarea
-          id="remarks"
-          name="remarks"
+          {...field("remarks")}
           rows={3}
           className="input"
           placeholder="Please explain the reason for your time off request..."
-          value={values.remarks}
-          onChange={(e) => set("remarks", e.target.value)}
         />
       </div>
 
@@ -149,7 +116,7 @@ export function LeaveForm({
         className="btn-primary w-full shadow-md shadow-brand/20"
       >
         <IconSparkles size={16} />
-        <span>Submit Leave Application</span>
+        <span>Submit request</span>
       </SubmitButton>
     </form>
   );

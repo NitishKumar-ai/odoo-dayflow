@@ -7,19 +7,18 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
 import { DemoLoginHelper } from "@/components/DemoLoginHelper";
 import { IconLock, IconMail, IconArrowRight } from "@/components/Icons";
+import { useFields } from "@/components/useFields";
 
 const initial: FormState = {};
 
 function SignInForm() {
   const [state, action] = useActionState(signInAction, initial);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { field, setValues } = useFields({ email: "", password: "" });
   const [showPass, setShowPass] = useState(false);
 
   const handleDemoSelect = useCallback((e: string, p: string) => {
-    setEmail(e);
-    setPassword(p);
-  }, []);
+    setValues({ email: e, password: p });
+  }, [setValues]);
 
   return (
     <div className="card p-6 sm:p-8 shadow-md">
@@ -60,13 +59,10 @@ function SignInForm() {
               <IconMail size={16} />
             </div>
             <input
-              id="email"
-              name="email"
+              {...field("email")}
               type="email"
               autoComplete="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               className="input pl-10"
               placeholder="you@company.com"
             />
@@ -91,13 +87,10 @@ function SignInForm() {
               <IconLock size={16} />
             </div>
             <input
-              id="password"
-              name="password"
+              {...field("password")}
               type={showPass ? "text" : "password"}
               autoComplete="current-password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="input pl-10"
               placeholder="••••••••••••"
             />

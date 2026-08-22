@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { signUpAction, type FormState } from "@/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
@@ -14,21 +14,29 @@ import {
   IconBriefcase,
   IconArrowRight,
 } from "@/components/Icons";
+import { useFields } from "@/components/useFields";
 
 const initial: FormState = {};
 
 export default function SignUpPage() {
   const [state, action] = useActionState(signUpAction, initial);
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("employee");
+  // Controlled, so a rejected server action does not wipe the form.
+  const { values, field } = useFields({
+    firstName: "",
+    lastName: "",
+    employeeCode: "",
+    email: "",
+    password: "",
+    role: "employee",
+  });
 
   // Password rules evaluation
   const rules = [
-    { label: "At least 10 characters", pass: password.length >= 10 },
-    { label: "Uppercase letter (A-Z)", pass: /[A-Z]/.test(password) },
-    { label: "Lowercase letter (a-z)", pass: /[a-z]/.test(password) },
-    { label: "At least one number (0-9)", pass: /[0-9]/.test(password) },
-    { label: "Special symbol (!@#$%^&*)", pass: /[^A-Za-z0-9]/.test(password) },
+    { label: "At least 10 characters", pass: values.password.length >= 10 },
+    { label: "Uppercase letter (A-Z)", pass: /[A-Z]/.test(values.password) },
+    { label: "Lowercase letter (a-z)", pass: /[a-z]/.test(values.password) },
+    { label: "At least one number (0-9)", pass: /[0-9]/.test(values.password) },
+    { label: "Special symbol (!@#$%^&*)", pass: /[^A-Za-z0-9]/.test(values.password) },
   ];
 
   return (
@@ -54,8 +62,7 @@ export default function SignUpPage() {
                 <IconUser size={15} />
               </div>
               <input
-                id="firstName"
-                name="firstName"
+                {...field("firstName")}
                 required
                 className="input pl-9"
                 placeholder="Rohan"
@@ -68,8 +75,7 @@ export default function SignUpPage() {
               Last name
             </label>
             <input
-              id="lastName"
-              name="lastName"
+              {...field("lastName")}
               className="input"
               placeholder="Mehta"
             />
@@ -86,8 +92,7 @@ export default function SignUpPage() {
               <IconBriefcase size={15} />
             </div>
             <input
-              id="employeeCode"
-              name="employeeCode"
+              {...field("employeeCode")}
               required
               className="input pl-9 uppercase font-mono text-xs tracking-wider"
               placeholder="EMP1088"
@@ -105,8 +110,7 @@ export default function SignUpPage() {
               <IconMail size={15} />
             </div>
             <input
-              id="email"
-              name="email"
+              {...field("email")}
               type="email"
               autoComplete="email"
               required
@@ -126,13 +130,10 @@ export default function SignUpPage() {
               <IconLock size={15} />
             </div>
             <input
-              id="password"
-              name="password"
+              {...field("password")}
               type="password"
               autoComplete="new-password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="input pl-9"
               placeholder="••••••••••••"
             />
@@ -169,17 +170,14 @@ export default function SignUpPage() {
             Organization Role
           </label>
           <select
-            id="role"
-            name="role"
+            {...field("role")}
             className="input font-medium"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
           >
             <option value="employee">Staff / Team Member (Standard Access)</option>
             <option value="admin">HR Manager / Administrator (Full Access)</option>
           </select>
           <p className="mt-1 text-[11px] text-muted">
-            {role === "admin"
+            {values.role === "admin"
               ? "Admins can manage staff records, approvals, payroll structures, and company attendance."
               : "Standard employees can clock hours, apply for leaves, and view their payroll slips."}
           </p>
