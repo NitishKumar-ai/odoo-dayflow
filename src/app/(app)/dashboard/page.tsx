@@ -10,7 +10,12 @@ import {
 } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { today, weekRange, formatTime, formatDate, formatDay } from "@/lib/dates";
-import { STATUS_LABEL, STATUS_TONE } from "@/lib/attendance";
+import {
+  STATUS_LABEL,
+  STATUS_TONE,
+  BUSINESS_DAYS_PER_WEEK,
+  countPresentBusinessDays,
+} from "@/lib/attendance";
 import { leaveSummary } from "@/lib/leave-queries";
 import { getCurrentSalary } from "@/lib/employee-queries";
 import { formatMoney, net } from "@/lib/money";
@@ -58,7 +63,7 @@ export default async function DashboardPage() {
       ),
     );
 
-  const presentThisWeek = weekRows.filter((r) => r.status === "present").length;
+  const presentThisWeek = countPresentBusinessDays(weekRows);
 
   const myLeave = await db
     .select()
@@ -190,7 +195,7 @@ export default async function DashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Days Present"
-          value={`${presentThisWeek} / 5`}
+          value={`${presentThisWeek} / ${BUSINESS_DAYS_PER_WEEK}`}
           subtitle="This work week"
           tone="success"
           icon={<IconAttendance size={20} />}
@@ -292,7 +297,7 @@ export default async function DashboardPage() {
             </div>
 
             <span className="font-medium text-foreground">
-              {presentThisWeek} of 5 business days logged
+              {presentThisWeek} of {BUSINESS_DAYS_PER_WEEK} business days logged
             </span>
           </div>
         </section>
