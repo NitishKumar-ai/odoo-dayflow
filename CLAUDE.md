@@ -130,3 +130,9 @@ repo — change them deliberately, and update the tests in the same commit.
 - Deploy trigger: automatic on push to `main`
 - Deploy status: `vercel inspect https://odoo-dayflow-steel.vercel.app`
 - Health check: https://odoo-dayflow-steel.vercel.app/signin
+
+## Design System
+
+Always read `DESIGN.md` before changing visual design, brand identity, typography,
+color, layout, or motion. New public-facing work should extend the Working Day
+direction and preserve its accessibility rules.
