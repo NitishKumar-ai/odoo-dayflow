@@ -4,7 +4,8 @@ import { and, eq } from "drizzle-orm";
 import { resetDb, seedEmployee, type SeededEmployee } from "./helpers/db";
 import { actAs } from "./helpers/session";
 import { db } from "@/db";
-import { attendance, leaveRequests } from "@/db/schema";
+import { attendance, leaveBalances, leaveRequests } from "@/db/schema";
+import { DEFAULT_ENTITLEMENT } from "@/lib/leave";
 
 // The factory must be inline: vi.mock is hoisted above the import statements.
 vi.mock("@/lib/auth", async () => (await import("./helpers/session")).authMock());
@@ -124,6 +125,28 @@ describe("applyLeaveAction", () => {
       leaveType: "unpaid", startDate: MON, endDate: "2026-10-30", remarks: "",
     }));
     expect(res.ok).toBeTruthy();
+  });
+
+  it("opens the year's default balance when none exists yet", async () => {
+    const yearless = await seedEmployee({ firstName: "Yearless", year: 2025 });
+    actAs({ ...yearless, role: "employee" });
+
+    const res = await applyLeaveAction({}, form({
+      leaveType: "paid", startDate: MON, endDate: MON, remarks: "",
+    }));
+
+    expect(res.ok).toBeTruthy();
+    const [balance] = await db
+      .select()
+      .from(leaveBalances)
+      .where(
+        and(
+          eq(leaveBalances.employeeId, yearless.employeeId),
+          eq(leaveBalances.year, 2026),
+          eq(leaveBalances.leaveType, "paid"),
+        ),
+      );
+    expect(balance.entitledDays).toBe(DEFAULT_ENTITLEMENT.paid);
   });
 });
 
