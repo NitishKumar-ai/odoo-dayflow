@@ -2,6 +2,25 @@
 
 All notable changes to Dayflow are recorded here.
 
+## [0.2.0.1] - 2026-08-22
+
+Deployment groundwork. No change to how the application behaves.
+
+### Added
+
+- **Versioned database migrations.** The schema is now applied from reviewable
+  SQL files rather than diffed onto the database in place, so a deployment can
+  no longer drop a column without anyone having seen it. `npm run db:generate`
+  writes a migration, `npm run db:migrate` applies it.
+- **Vercel configuration and a deployment guide.** `DEPLOYING.md` covers the
+  environment variables a hosted deployment needs, how to create the first
+  administrator without the demo seed, and what is still missing.
+
+### Fixed
+
+- The admin project page is now listed in the README's spec-to-code map.
+
+
 ## [0.2.0.0] - 2026-08-22
 
 A visual rebuild of every screen, a new delivery-progress page for HR, and fixes
