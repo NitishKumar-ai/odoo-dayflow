@@ -67,31 +67,31 @@ export default async function AdminPayrollPage() {
       {/* Top Metrics Cards */}
       <section className="grid gap-4 sm:grid-cols-4">
         <StatCard
-          label="Total Monthly Gross"
+          title="Total Monthly Gross"
           value={formatMoney(totalGross, currency)}
           tone="brand"
-          sub="Company monthly gross payout"
+          subtitle="Company monthly gross payout"
           icon={<IconPayroll size={20} />}
         />
         <StatCard
-          label="Total Monthly Net"
+          title="Total Monthly Net"
           value={formatMoney(totalNet, currency)}
           tone="success"
-          sub="Total direct take-home liability"
+          subtitle="Total direct take-home liability"
           icon={<IconTrendingUp size={20} />}
         />
         <StatCard
-          label="Total TDS / Deductions"
+          title="Total TDS / Deductions"
           value={formatMoney(totalDeductions, currency)}
           tone="warning"
-          sub="Statutory tax withholding"
+          subtitle="Statutory tax withholding"
           icon={<IconBriefcase size={20} />}
         />
         <StatCard
-          label="Pending Structures"
+          title="Pending Structures"
           value={missing}
-          tone={missing > 0 ? "error" : "neutral"}
-          sub={`Out of ${active.length} active team members`}
+          tone={missing > 0 ? "danger" : "neutral"}
+          subtitle={`Out of ${active.length} active team members`}
           icon={<IconAlertCircle size={20} />}
         />
       </section>
