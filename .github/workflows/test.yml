@@ -1,0 +1,33 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # The Postgres client is lazy, so a placeholder URL is enough to build.
+      # No database is contacted: every data-touching route is dynamic.
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgres://ci@localhost:5432/dayflow
+          SESSION_SECRET: ci-build-only-secret-not-used-at-runtime
