@@ -82,33 +82,40 @@ export async function getCurrentSalary(employeeId: string) {
   return upcoming ?? null;
 }
 
+/** Postgres caps a statement at 65535 bind parameters; stay far below it. */
+const ID_CHUNK = 1000;
+
 /**
  * Batch version of getCurrentSalary. The payroll table needs one row per
  * employee; calling the single lookup in a loop was one to two queries per
- * person, so this reads them all at once and picks in memory.
+ * person. DISTINCT ON makes Postgres pick the applicable revision, so the full
+ * salary history never reaches Node.
+ *
+ * The ordering encodes the same rule as pickCurrentSalary: revisions already in
+ * force come first, and within each group the one closest to the date wins —
+ * the latest below it, or the soonest above it.
  */
 export async function getCurrentSalaries(
   employeeIds: string[],
+  onDate: string = today(),
 ): Promise<Map<string, SalaryRow>> {
   const out = new Map<string, SalaryRow>();
-  if (employeeIds.length === 0) return out;
 
-  const rows = await db
-    .select()
-    .from(salaryStructures)
-    .where(inArray(salaryStructures.employeeId, employeeIds));
+  for (let i = 0; i < employeeIds.length; i += ID_CHUNK) {
+    const chunk = employeeIds.slice(i, i + ID_CHUNK);
+    const rows = await db
+      .selectDistinctOn([salaryStructures.employeeId])
+      .from(salaryStructures)
+      .where(inArray(salaryStructures.employeeId, chunk))
+      .orderBy(
+        salaryStructures.employeeId,
+        sql`(${salaryStructures.effectiveFrom} <= ${onDate}::date) desc`,
+        sql`abs(${salaryStructures.effectiveFrom} - ${onDate}::date) asc`,
+      );
 
-  const byEmployee = new Map<string, SalaryRow[]>();
-  for (const row of rows) {
-    const list = byEmployee.get(row.employeeId);
-    if (list) list.push(row);
-    else byEmployee.set(row.employeeId, [row]);
+    for (const row of rows) out.set(row.employeeId, row);
   }
 
-  for (const [employeeId, list] of byEmployee) {
-    const picked = pickCurrentSalary(list);
-    if (picked) out.set(employeeId, picked);
-  }
   return out;
 }
 

@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# npm ci runs third-party lifecycle scripts; give them no write access.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
