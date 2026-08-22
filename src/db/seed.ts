@@ -21,7 +21,17 @@ import { toDateKey } from "../lib/dates";
 import { deriveStatus } from "../lib/attendance";
 import { DEFAULT_ENTITLEMENT, countLeaveDays } from "../lib/leave";
 
-const PASSWORD = "Dayflow#2026";
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required to seed demo accounts.`);
+  return value;
+}
+
+const PASSWORD = requiredEnv("DEMO_SEED_PASSWORD");
+
+if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
+  throw new Error("Refusing to wipe and seed a production database without ALLOW_DEMO_SEED=true.");
+}
 
 type Person = {
   code: string;
