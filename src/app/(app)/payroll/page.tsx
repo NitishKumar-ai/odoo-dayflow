@@ -5,7 +5,6 @@ import { formatMoney, gross, net } from "@/lib/money";
 import { SalaryCard } from "@/components/SalaryCard";
 import {
   IconPayroll,
-  IconSparkles,
   IconFileText,
   IconTrendingUp,
 } from "@/components/Icons";
@@ -76,7 +75,7 @@ export default async function PayrollPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
-                      {history.map((h, idx) => {
+                      {history.map((h) => {
                         const isCurrent = h.id === current.id;
                         return (
                           <tr

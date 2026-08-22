@@ -14,11 +14,8 @@ import {
 import { STATUS_LABEL, STATUS_TONE, workedHours } from "@/lib/attendance";
 import { CheckInOut } from "@/components/CheckInOut";
 import {
-  IconAttendance,
   IconArrowLeft,
   IconArrowRight,
-  IconClock,
-  IconCheckCircle,
 } from "@/components/Icons";
 
 type Props = {

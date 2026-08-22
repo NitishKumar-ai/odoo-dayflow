@@ -13,10 +13,8 @@ import { LeaveBalanceCard } from "@/components/LeaveBalanceCard";
 import { WithdrawLeave } from "@/components/WithdrawLeave";
 import {
   IconLeave,
-  IconClock,
   IconSparkles,
   IconCheckCircle,
-  IconAlertCircle,
   IconPlus,
 } from "@/components/Icons";
 

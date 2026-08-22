@@ -13,10 +13,6 @@ import { Avatar } from "@/components/Avatar";
 import { DecideLeave } from "@/components/admin/DecideLeave";
 import {
   IconApprovals,
-  IconCheck,
-  IconX,
-  IconClock,
-  IconBriefcase,
 } from "@/components/Icons";
 
 const TABS: { key: LeaveStatus | "all"; label: string }[] = [
