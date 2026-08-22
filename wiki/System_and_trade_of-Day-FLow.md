@@ -341,11 +341,10 @@ rediscover them under load.
 
 ## Known risks
 
-**Anyone can sign themselves up as an admin.** `/signup` renders a role select,
-and `signUpAction` accepts `role: z.enum(["employee", "admin"])` straight from
-the form. It exists to make the demo usable without a bootstrap script, and it
-is the single most dangerous line to deploy as-is. The fix is an invite flow, or
-promotion by an existing admin, or at minimum a first-user-only escalation.
+**Public sign-up always creates a standard employee.** The server ignores any
+crafted `role` field and writes `employee`; the public form exposes no role
+selector. Administrator access is granted only by an existing administrator
+through employee management.
 
 **Timezone is the server's.** `today()` builds a date key from the server's local
 clock. Everyone is assumed to be in one timezone. A remote employee checking in
@@ -376,12 +375,12 @@ a real upload pipeline would close.
 
 In order, weighing risk against effort:
 
-1. Remove self-service admin sign-up.
+1. Replace console-only email verification with a real mailer.
 2. Create or lazily materialise `leave_balances` for the current year, so the
    product does not break on 1 January.
 3. Switch to generated, committed migrations before any production deploy.
 4. Add `admin/layout.tsx` with `requireAdmin()` as a backstop guard.
-5. Wire a real mailer for verification, and add sign-in rate limiting.
+5. Add sign-in rate limiting.
 6. Push the employee search into SQL with a limit, before the directory grows.
 7. Add tests for the pure rules — `deriveStatus`, `countLeaveDays`, `daysUsed`,
    `gross`/`net`. They are already pure functions in `src/lib/`; they are the
