@@ -2,7 +2,11 @@ import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { IconCheck, IconShield } from "@/components/Icons";
 
-export default function AuthLayout({ children }: LayoutProps<"/">) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <main className="flex min-h-screen flex-1 flex-col items-center justify-center bg-background px-4 py-12 selection:bg-brand selection:text-white">
       {/* Subtle Background Glow */}

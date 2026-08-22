@@ -21,9 +21,11 @@ import {
   IconCheckCircle,
 } from "@/components/Icons";
 
-export default async function AttendancePage({
-  searchParams,
-}: PageProps<"/attendance">) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function AttendancePage({ searchParams }: Props) {
   const user = await requireUser();
   const params = await searchParams;
   const anchor = typeof params.week === "string" ? params.week : today();
