@@ -9,6 +9,7 @@ export async function resetDb() {
   assertTestDatabaseUrl(process.env.DATABASE_URL);
   await db.execute(sql`
     truncate table
+      payslips, payroll_runs,
       activity_log, attendance, leave_requests, leave_balances,
       salary_structures, documents, email_verification_tokens,
       employees, users
