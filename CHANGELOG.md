@@ -2,6 +2,60 @@
 
 All notable changes to Dayflow are recorded here.
 
+## [0.2.1.0] - 2026-08-22
+
+A public landing page, payroll runs that freeze pay at the end of a period, and
+a migration fix that would otherwise have left a deployed database without its
+payroll tables.
+
+### Added
+
+- **A landing page for people who are not signed in yet.** The site root now
+  explains what Dayflow is instead of bouncing straight to the sign-in form.
+  Anyone already signed in still goes directly to their dashboard.
+- **Payroll runs and payslips.** A pay period can now be opened, filled with a
+  payslip per employee, and finalised. Each payslip stores the salary figures as
+  they stood when the run was finalised, so a later raise cannot quietly rewrite
+  what someone was already paid. This is the data model and the helpers only;
+  there is no screen for it yet, and payslip documents are still future work.
+- **Leave balances create themselves.** An employee who reads or applies for
+  leave in a year that has no balance rows gets the default paid and sick
+  entitlements provisioned on the spot, instead of seeing a zero quota until an
+  administrator intervened.
+- **A documentation set.** Architecture, data model and ERD, a server-actions
+  reference, routing, attendance, authentication, leave, payroll, testing, and
+  a project wiki.
+- **A presenter guide and an outstanding-work audit.** `DEMO.md` carries the
+  demo accounts and a run-through of both roles; `REMAINING.md` records what a
+  live audit of the running application found still missing, by priority.
+
+### Fixed
+
+- **Payroll tables were never created on a deployed database.** Two competing
+  first migrations existed: the one on the migration run list did not contain
+  `payroll_runs` or `payslips`, and the one that did was orphaned and never
+  applied. Because a production build runs the migrations, the payroll helpers
+  and the seed reset both referred to tables that did not exist. The payroll
+  tables now ship as their own migration, added on top of the one already
+  applied rather than by rewriting it, and the schema snapshots were re-paired
+  so the next generated migration diffs against the truth.
+- **"6 / 5 days present" on the dashboard.** Checking in at the weekend counted
+  towards a total that was measured against five business days, so anyone who
+  worked a Saturday saw a figure larger than its own maximum.
+- **The seed script no longer fails the type check.** Its reset block deleted
+  the two payroll tables without importing either of them.
+
+### Security
+
+- **The demo password is no longer written into the repository.** `DEMO.md` now
+  points at `DEMO_SEED_PASSWORD` in the git-ignored `.env.local`. The repository
+  is public, so the previously committed value must be treated as exposed and
+  must never be reused on a deployed environment.
+- **Large media is kept out of version control.** A source video, its build
+  script, and unused logo artwork are ignored; nothing in the application
+  referenced any of them.
+
+
 ## [0.2.0.1] - 2026-08-22
 
 Deployment groundwork. No change to how the application behaves.
