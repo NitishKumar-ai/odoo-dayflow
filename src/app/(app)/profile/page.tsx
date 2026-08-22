@@ -8,22 +8,25 @@ import { formatDate } from "@/lib/dates";
 import { formatMoney, gross, net } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
 import { ProfileForm } from "@/components/ProfileForm";
+import { SalaryCard } from "@/components/SalaryCard";
+import {
+  IconUser,
+  IconBriefcase,
+  IconMail,
+  IconPhone,
+  IconMapPin,
+  IconBuilding,
+  IconFileText,
+  IconShield,
+  IconSparkles,
+} from "@/components/Icons";
 
 const EMPLOYMENT_LABEL: Record<string, string> = {
-  full_time: "Full-time",
-  part_time: "Part-time",
-  contract: "Contract",
-  intern: "Intern",
+  full_time: "Full-Time Permanent",
+  part_time: "Part-Time",
+  contract: "Independent Contractor",
+  intern: "Intern / Trainee",
 };
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
-      <dd className="mt-0.5 text-sm">{value || <span className="text-muted">—</span>}</dd>
-    </div>
-  );
-}
 
 export default async function ProfilePage() {
   const user = await requireUser();
@@ -35,106 +38,140 @@ export default async function ProfilePage() {
   const fullName = `${detail.firstName} ${detail.lastName}`.trim();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Avatar name={fullName} photoUrl={detail.photoUrl} size={64} />
-        <div>
-          <h1 className="text-2xl font-semibold">{fullName}</h1>
-          <p className="text-sm text-muted">
-            {detail.jobTitle || "Role not set"} · {detail.department || "No department"}
-          </p>
+    <div className="space-y-8">
+      {/* Hero Profile Banner */}
+      <div className="card overflow-hidden border-brand/20">
+        <div className="h-32 bg-linear-to-r from-brand via-indigo-600 to-purple-600 relative">
+          <div className="absolute inset-0 bg-black/10" />
+        </div>
+
+        <div className="p-6 sm:p-8 pt-0 relative flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-5">
+            <div className="ring-4 ring-surface rounded-2xl overflow-hidden shadow-lg bg-surface shrink-0">
+              <Avatar name={fullName} photoUrl={detail.photoUrl} size={96} />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                  {fullName}
+                </h1>
+                <span className="pill bg-brand-soft text-brand ring-brand/20 font-mono text-xs">
+                  {detail.employeeCode}
+                </span>
+              </div>
+              <p className="text-sm text-muted font-medium">
+                {detail.jobTitle || "Role not set"} · {detail.department || "General"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span
+              className={`pill ${
+                detail.role === "admin"
+                  ? "bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-950/40 dark:text-purple-300"
+                  : "bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-950/40 dark:text-blue-300"
+              } font-bold`}
+            >
+              {detail.role === "admin" ? "🛡️ HR Administrator" : "👤 Employee"}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <section className="card p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            Personal details
-          </h2>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Employee ID" value={detail.employeeCode} />
-            <Field label="Email" value={detail.email} />
-            <Field label="Phone" value={detail.phone} />
-            <Field label="Date of birth" value={detail.dateOfBirth ? formatDate(detail.dateOfBirth) : ""} />
-            <div className="sm:col-span-2">
-              <Field label="Address" value={detail.address} />
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column: Personal & Employment Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Employment & Role Information */}
+          <section className="card p-6 shadow-xs">
+            <div className="flex items-center gap-2 border-b border-line pb-4 mb-5">
+              <IconBriefcase size={18} className="text-brand" />
+              <h2 className="text-base font-bold text-foreground">Employment & Role Information</h2>
             </div>
-          </dl>
 
-          <h2 className="mt-7 text-sm font-semibold uppercase tracking-wide text-muted">
-            Job details
-          </h2>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Job title" value={detail.jobTitle} />
-            <Field label="Department" value={detail.department} />
-            <Field
-              label="Employment type"
-              value={EMPLOYMENT_LABEL[detail.employmentType] ?? detail.employmentType}
-            />
-            <Field
-              label="Joined"
-              value={detail.dateOfJoining ? formatDate(detail.dateOfJoining) : ""}
-            />
-            <Field label="Access level" value={detail.role === "admin" ? "HR / Admin" : "Employee"} />
-          </dl>
-        </section>
+            <dl className="grid gap-5 sm:grid-cols-2 text-sm">
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">Job Title</dt>
+                <dd className="mt-1 font-semibold text-foreground">{detail.jobTitle || "—"}</dd>
+              </div>
 
-        <div className="space-y-4">
-          <section className="card p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Salary structure
-            </h2>
-            {salary ? (
-              <>
-                <p className="mt-3 text-2xl font-semibold tabular-nums">
-                  {formatMoney(net(salary), salary.currency)}
-                  <span className="text-sm font-normal text-muted"> net / month</span>
-                </p>
-                <dl className="mt-4 space-y-2 text-sm">
-                  {[
-                    ["Basic", salary.basic],
-                    ["HRA", salary.hra],
-                    ["Allowances", salary.allowances],
-                  ].map(([label, amount]) => (
-                    <div key={label} className="flex justify-between">
-                      <dt className="text-muted">{label}</dt>
-                      <dd className="tabular-nums">
-                        {formatMoney(Number(amount), salary.currency)}
-                      </dd>
-                    </div>
-                  ))}
-                  <div className="flex justify-between border-t border-line pt-2">
-                    <dt className="text-muted">Gross</dt>
-                    <dd className="tabular-nums">{formatMoney(gross(salary), salary.currency)}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted">Deductions</dt>
-                    <dd className="tabular-nums">
-                      −{formatMoney(Number(salary.deductions), salary.currency)}
-                    </dd>
-                  </div>
-                </dl>
-                <p className="mt-3 text-xs text-muted">
-                  Effective {formatDate(salary.effectiveFrom)} · read-only
-                </p>
-              </>
-            ) : (
-              <p className="mt-3 text-sm text-muted">No salary structure on record yet.</p>
-            )}
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">Department</dt>
+                <dd className="mt-1 font-semibold text-foreground">{detail.department || "—"}</dd>
+              </div>
+
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">Employment Type</dt>
+                <dd className="mt-1 font-semibold text-foreground">
+                  {EMPLOYMENT_LABEL[detail.employmentType] ?? detail.employmentType}
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">Date of Joining</dt>
+                <dd className="mt-1 font-semibold text-foreground">
+                  {detail.dateOfJoining ? formatDate(detail.dateOfJoining) : "—"}
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">Company Email</dt>
+                <dd className="mt-1 font-semibold text-foreground font-mono text-xs">{detail.email}</dd>
+              </div>
+
+              <div>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">System Role</dt>
+                <dd className="mt-1 font-semibold text-foreground">
+                  {detail.role === "admin" ? "HR Administrator" : "Standard Employee"}
+                </dd>
+              </div>
+            </dl>
           </section>
 
-          <section className="card p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Documents
-            </h2>
+          {/* Contact Details & Edit Form */}
+          <section className="card p-6 shadow-xs">
+            <div className="flex items-center gap-2 border-b border-line pb-4 mb-5">
+              <IconUser size={18} className="text-brand" />
+              <h2 className="text-base font-bold text-foreground">Personal & Contact Preferences</h2>
+            </div>
+
+            <ProfileForm
+              phone={detail.phone}
+              address={detail.address}
+              photoUrl={detail.photoUrl ?? ""}
+            />
+          </section>
+        </div>
+
+        {/* Right Column: Salary & Documents */}
+        <div className="space-y-6">
+          {/* Salary Breakdown snippet */}
+          {salary ? (
+            <SalaryCard salary={salary} showHistoryNotice={false} />
+          ) : (
+            <div className="card p-6 text-center text-muted">
+              <p className="text-xs">No salary structure active.</p>
+            </div>
+          )}
+
+          {/* Documents Card */}
+          <section className="card p-6 shadow-xs">
+            <div className="flex items-center gap-2 border-b border-line pb-4 mb-4">
+              <IconFileText size={18} className="text-brand" />
+              <h2 className="text-base font-bold text-foreground">Uploaded Documents</h2>
+            </div>
+
             {docs.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">No documents uploaded.</p>
+              <p className="text-xs text-muted">
+                No official employee documents uploaded yet.
+              </p>
             ) : (
-              <ul className="mt-3 space-y-2">
+              <ul className="divide-y divide-line">
                 {docs.map((d) => (
-                  <li key={d.id} className="flex items-center justify-between text-sm">
-                    <span>{d.name}</span>
-                    <span className="text-xs text-muted">{d.category}</span>
+                  <li key={d.id} className="py-2.5 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground">{d.name}</span>
+                    <span className="pill bg-surface-muted text-muted font-mono">{d.category}</span>
                   </li>
                 ))}
               </ul>
@@ -142,19 +179,6 @@ export default async function ProfilePage() {
           </section>
         </div>
       </div>
-
-      <section className="card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Edit my details
-        </h2>
-        <div className="mt-4 max-w-lg">
-          <ProfileForm
-            phone={detail.phone}
-            address={detail.address}
-            photoUrl={detail.photoUrl ?? ""}
-          />
-        </div>
-      </section>
     </div>
   );
 }
