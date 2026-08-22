@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7f9;
+  --background: #f8fafc;
   --surface: #ffffff;
-  --surface-muted: #f2f4f7;
-  --border: #e3e6ea;
-  --foreground: #14181f;
-  --muted: #5f6b7a;
-  --brand: #2f5bea;
-  --brand-soft: #eaf0ff;
+  --surface-muted: #f1f5f9;
+  --surface-elevated: #ffffff;
+  --border: #e2e8f0;
+  --border-subtle: #edf2f7;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-soft: #eff6ff;
+  --brand-glow: rgba(37, 99, 235, 0.15);
+  --success: #10b981;
+  --success-soft: #ecfdf5;
+  --warning: #f59e0b;
+  --warning-soft: #fffbeb;
+  --danger: #ef4444;
+  --danger-soft: #fef2f2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0f14;
-    --surface: #141922;
-    --surface-muted: #1a2029;
-    --border: #262d38;
-    --foreground: #e8ecf2;
-    --muted: #98a3b3;
-    --brand: #6b8dff;
-    --brand-soft: #1b2540;
+    --background: #090d16;
+    --surface: #111827;
+    --surface-muted: #172033;
+    --surface-elevated: #1e293b;
+    --border: #1f293d;
+    --border-subtle: #162032;
+    --foreground: #f1f5f9;
+    --muted: #94a3b8;
+    --brand: #3b82f6;
+    --brand-hover: #60a5fa;
+    --brand-soft: #172554;
+    --brand-glow: rgba(59, 130, 246, 0.25);
+    --success: #34d399;
+    --success-soft: #064e3b;
+    --warning: #fbbf24;
+    --warning-soft: #451a03;
+    --danger: #f87171;
+    --danger-soft: #450a0a;
   }
 }
 
@@ -28,58 +48,74 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-elevated: var(--surface-elevated);
   --color-line: var(--border);
+  --color-line-subtle: var(--border-subtle);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-line bg-surface;
+    @apply rounded-2xl border border-line bg-surface shadow-xs transition-all duration-200;
+  }
+  .card-hover {
+    @apply hover:border-brand/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+  }
+  .card-glass {
+    @apply rounded-2xl border border-line/70 bg-surface/80 backdrop-blur-md shadow-xs;
   }
   .label {
-    @apply block text-sm font-medium text-foreground mb-1.5;
+    @apply block text-xs font-semibold uppercase tracking-wider text-muted mb-1.5;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-foreground
-           outline-none placeholder:text-muted
-           focus:border-brand focus:ring-2 focus:ring-brand/25;
+    @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-foreground
+           outline-none placeholder:text-muted/70 transition-all duration-200
+           focus:border-brand focus:ring-4 focus:ring-brand/15;
   }
-  /* Tailwind v4 cannot @apply another component class, so the shared button
-     rules are declared once across all four selectors. */
   .btn,
   .btn-primary,
   .btn-secondary,
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
-           transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  .btn-danger,
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+           transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-primary {
-    @apply bg-brand text-white hover:opacity-90;
+    @apply bg-brand text-white shadow-xs hover:bg-brand-hover hover:shadow-md hover:shadow-brand/20;
   }
   .btn-secondary {
-    @apply border border-line bg-surface text-foreground hover:bg-surface-muted;
+    @apply border border-line bg-surface text-foreground hover:bg-surface-muted hover:border-muted/30;
   }
   .btn-danger {
-    @apply border border-rose-300 text-rose-700 hover:bg-rose-50
-           dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/10;
+    @apply border border-rose-200 bg-rose-50/80 text-rose-700 hover:bg-rose-100/80
+           dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60;
+  }
+  .btn-ghost {
+    @apply text-muted hover:bg-surface-muted hover:text-foreground;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-lg;
   }
   .pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset;
   }
   .th {
-    @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-muted;
+    @apply px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted/90;
   }
   .td {
-    @apply px-4 py-3 text-sm text-foreground align-middle;
+    @apply px-4 py-3.5 text-sm text-foreground align-middle;
   }
 }
