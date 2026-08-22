@@ -2,7 +2,7 @@
  * Demo data. Run with `npm run db:seed` — it clears the tables first.
  */
 import "./load-env";
-import { validateSeedEnvironment } from "./seed-environment";
+import { seedCompletionMessages, validateSeedEnvironment } from "./seed-environment";
 
 // Validate before importing the database client or any seed implementation.
 // This keeps an unsafe invocation from opening a connection, let alone deleting data.
@@ -228,9 +228,9 @@ async function main() {
     return row.userId;
   }
 
-  console.log(`\nSeeded ${people.length} users. Password for all accounts: ${PASSWORD}`);
-  console.log(`  Admin/HR : ${people[0].email}`);
-  console.log(`  Employee : ${people[1].email}\n`);
+  for (const message of seedCompletionMessages(people.length, people[0].email, people[1].email)) {
+    console.log(message);
+  }
   process.exit(0);
 }
 
