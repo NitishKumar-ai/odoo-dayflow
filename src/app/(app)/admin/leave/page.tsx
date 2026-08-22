@@ -26,9 +26,11 @@ const TABS: { key: LeaveStatus | "all"; label: string }[] = [
   { key: "all", label: "All Requests" },
 ];
 
-export default async function AdminLeavePage({
-  searchParams,
-}: PageProps<"/admin/leave">) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function AdminLeavePage({ searchParams }: Props) {
   await requireAdmin();
   const params = await searchParams;
   const tab = (typeof params.status === "string" ? params.status : "pending") as

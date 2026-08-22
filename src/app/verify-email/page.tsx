@@ -4,9 +4,11 @@ import { Alert } from "@/components/Alert";
 import { verifyEmailAction } from "@/actions/auth";
 import { IconCheckCircle, IconMail, IconArrowRight } from "@/components/Icons";
 
-export default async function VerifyEmailPage({
-  searchParams,
-}: PageProps<"/verify-email">) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function VerifyEmailPage({ searchParams }: Props) {
   const params = await searchParams;
   const token = typeof params.token === "string" ? params.token : null;
   const sent = typeof params.sent === "string" ? params.sent : null;

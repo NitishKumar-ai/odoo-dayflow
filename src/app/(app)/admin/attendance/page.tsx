@@ -21,9 +21,11 @@ import {
   IconClock,
 } from "@/components/Icons";
 
-export default async function AdminAttendancePage({
-  searchParams,
-}: PageProps<"/admin/attendance">) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function AdminAttendancePage({ searchParams }: Props) {
   await requireAdmin();
   const params = await searchParams;
   const view = params.view === "week" ? "week" : "day";

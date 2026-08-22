@@ -16,7 +16,11 @@ const employeeNav: NavItem[] = [
   { href: "/profile", label: "Profile" },
 ];
 
-export default async function AppLayout({ children }: LayoutProps<"/">) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const user = await requireUser();
   const isAdmin = user.role === "admin";
 

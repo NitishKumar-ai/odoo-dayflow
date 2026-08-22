@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: "Every workday, perfectly aligned.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
