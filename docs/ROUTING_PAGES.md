@@ -58,7 +58,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
   - `requireUser()` (`src/lib/auth.ts`): Applied at the top of all `(app)` pages. Validates JWT session cookie (`dayflow_session`). Redirects unauthenticated users to `/signin`.
   - `requireAdmin()` (`src/lib/auth.ts`): Applied at the top of all `(app)/admin/*` pages. Validates JWT session cookie and checks `user.role === 'admin'`. Redirects non-admin users to `/dashboard`.
 - **Per-Action Access Control**:
-  - Every Server Action in `src/actions/` invokes `requireUser()` or `requireAdmin()` internally. URL authorization alone never grants access to data mutations.
+  - Protected data-mutation actions invoke `requireUser()` or `requireAdmin()` internally. The authentication actions for sign-up, sign-in, email verification, and sign-out are intentionally public. URL authorization alone never grants access to protected data mutations.
 
 ### 1.3 Routing Mechanics & Next.js 16 Features
 
@@ -119,7 +119,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
   - `sent` *(optional, string)*: Email address notification message.
   - `devToken` *(optional, string)*: Development convenience link to verify token locally.
 - **Server Actions**: `verifyEmailAction(token)` (`src/actions/auth.ts`)
-- **Functionality**: Validates the single-use activation token, records `email_verified_at`, and marks the token as used. Displays a success alert with a link to `/signin`. Account activation state is managed separately by an administrator.
+- **Functionality**: Validates the single-use activation token, records `email_verified_at`, and marks the token as used. Displays a success alert with a link to `/signin`. New accounts are active by default; administrators may later deactivate or reactivate them.
 
 ---
 
@@ -168,8 +168,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component
 - **Components & Actions**:
-  - `LeaveForm` component (`requestLeaveAction` in `src/actions/leave.ts`)
-  - `WithdrawLeave` component (`withdrawLeaveAction` in `src/actions/leave.ts`)
+  - `LeaveForm` component (`applyLeaveAction` in `src/actions/leave.ts`)
+  - `WithdrawLeave` component (`cancelLeaveAction` in `src/actions/leave.ts`)
 - **Data Display**:
   - Annual Leave Balance Cards (Paid: 18 days, Sick: 12 days, Unpaid: uncapped).
   - Leave Application Form with date pickers, leave type selection, and optional remarks.
@@ -198,7 +198,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component
 - **Components & Actions**:
-  - `ProfileForm` component (`updateProfileSelfAction` in `src/actions/profile.ts`)
+  - `ProfileForm` component (`updateOwnProfileAction` in `src/actions/profile.ts`)
   - `Avatar` component (`src/components/Avatar.tsx`)
 - **Data Display**:
   - Personal Details (Employee Code, Email, Phone, DOB, Address).
@@ -219,7 +219,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
   - `view` *(optional, `"day"` | `"week"`)*: View mode (Defaults to `"day"`).
   - `date` *(optional, `YYYY-MM-DD`)*: Selected anchor date (Defaults to `today()`).
 - **Components & Actions**:
-  - `AttendanceOverride` modal/component (`adminOverrideAttendanceAction` in `src/actions/attendance.ts`)
+  - `AttendanceOverride` component (`setAttendanceStatusAction` in `src/actions/attendance.ts`)
 - **Data Display**:
   - Daily mode: Staff list table showing check-in/out times, worked hours, derived status, and an HR Override button.
   - Weekly mode: Grid matrix mapping all active employees across 7 week days with status indicators (`P`, `A`, `H`, `L`).
@@ -254,8 +254,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
   - `week` *(optional, `YYYY-MM-DD`)*: Attendance week pagination anchor.
 - **Components & Actions**:
   - `EmployeeEditForm` (`adminUpdateEmployeeAction` in `src/actions/profile.ts`)
-  - `SalaryForm` (`adminUpdateSalaryAction` in `src/actions/profile.ts`)
-  - `AttendanceOverride` (`adminOverrideAttendanceAction` in `src/actions/attendance.ts`)
+  - `SalaryForm` (`updateSalaryAction` in `src/actions/profile.ts`)
+  - `AttendanceOverride` (`setAttendanceStatusAction` in `src/actions/attendance.ts`)
 - **Data Display**:
   - Header profile banner with status pills (Deactivated / Email unverified).
   - HR Employee Edit form (names, phone, address, job title, department, employment type, joining date, DOB, role, active state).
@@ -275,7 +275,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 - **URL Parameters**:
   - `status` *(optional, `"pending"` | `"approved"` | `"rejected"` | `"all"`)*: Filter tab (Defaults to `"pending"`).
 - **Components & Actions**:
-  - `DecideLeave` component (`adminReviewLeaveAction` in `src/actions/leave.ts`)
+  - `DecideLeave` component (`decideLeaveAction` in `src/actions/leave.ts`)
 - **Data Display**:
   - KPI counter header (Pending, Approved, Rejected counts).
   - Navigation tab bar.
@@ -314,10 +314,10 @@ The table below maps the functional requirements spec directly to the routing im
 |---|---|---|---|
 | **3.1 Authentication & Email Verification** | `/signin`<br>`/signup`<br>`/verify-email` | Public | `signInAction`<br>`signUpAction`<br>`verifyEmailAction` |
 | **3.2 Role-Based Dashboards** | `/dashboard` | Authenticated User | Reads `attendance`, `leaveRequests`, `activityLog` |
-| **3.3 Profile & Self-Service Management** | `/profile`<br>`/admin/employees`<br>`/admin/employees/[employeeId]` | Employee (Self)<br>HR / Admin | `updateProfileSelfAction`<br>`adminUpdateEmployeeAction` |
-| **3.4 Attendance Management** | `/attendance`<br>`/admin/attendance` | Employee (Self)<br>HR / Admin | `checkInAction`<br>`checkOutAction`<br>`adminOverrideAttendanceAction` |
-| **3.5 Leave Workflows & Approvals** | `/leave`<br>`/admin/leave` | Employee (Self)<br>HR / Admin | `requestLeaveAction`<br>`withdrawLeaveAction`<br>`adminReviewLeaveAction` |
-| **3.6 Payroll Visibility & Structure** | `/payroll`<br>`/admin/payroll` | Employee (Read-only)<br>HR / Admin | `adminUpdateSalaryAction` |
+| **3.3 Profile & Self-Service Management** | `/profile`<br>`/admin/employees`<br>`/admin/employees/[employeeId]` | Employee (Self)<br>HR / Admin | `updateOwnProfileAction`<br>`adminUpdateEmployeeAction` |
+| **3.4 Attendance Management** | `/attendance`<br>`/admin/attendance` | Employee (Self)<br>HR / Admin | `checkInAction`<br>`checkOutAction`<br>`setAttendanceStatusAction` |
+| **3.5 Leave Workflows & Approvals** | `/leave`<br>`/admin/leave` | Employee (Self)<br>HR / Admin | `applyLeaveAction`<br>`cancelLeaveAction`<br>`decideLeaveAction` |
+| **3.6 Payroll Visibility & Structure** | `/payroll`<br>`/admin/payroll` | Employee (Read-only)<br>HR / Admin | `updateSalaryAction` |
 
 ---
 
