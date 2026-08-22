@@ -16,6 +16,8 @@ import {
   documents,
   activityLog,
   emailVerificationTokens,
+  payslips,
+  payrollRuns,
 } from "./schema";
 import { toDateKey } from "../lib/dates";
 import { deriveStatus } from "../lib/attendance";
@@ -54,6 +56,8 @@ function at(dateKey: string, hour: number, minute: number) {
 
 async function main() {
   console.log("Clearing existing data…");
+  await db.delete(payslips);
+  await db.delete(payrollRuns);
   await db.delete(activityLog);
   await db.delete(attendance);
   await db.delete(leaveRequests);
