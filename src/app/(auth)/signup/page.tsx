@@ -93,7 +93,7 @@ export default function SignUpPage() {
             <input
               {...field("employeeCode")}
               required
-              className="input pl-9 uppercase font-mono text-xs tracking-wider"
+              className="input pl-9 uppercase font-mono tracking-wider"
               placeholder="EMP1088"
             />
           </div>

@@ -54,7 +54,7 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => setShowPass(!showPass)}
-              className="text-[11px] font-semibold text-brand hover:underline"
+              className="-my-1 flex min-h-9 items-center rounded-lg px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-soft hover:underline"
             >
               {showPass ? "Hide" : "Show"}
             </button>
