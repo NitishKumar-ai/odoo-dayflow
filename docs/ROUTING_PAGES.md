@@ -64,7 +64,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 - **Dynamic Type Generation**: Next.js 16 generates global page and layout types into `.next/types/` (e.g., `PageProps<"/admin/employees/[employeeId]">`, `LayoutProps<"/">`).
 - **Async Route Parameters**: In Next.js 16, `params` and `searchParams` props are Promises and must be awaited inside page components.
-- **Form State Management**: Form inputs use `useFields` (`src/components/useFields.ts`) to prevent React 19 controlled form reset glitches upon server action completion.
+- **Form State Management**: Forms that must preserve browser autofill or selected values across a rejected Server Action use `useFields` (`src/components/useFields.ts`) to prevent React 19 controlled form reset glitches.
 
 ---
 
@@ -137,7 +137,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
      - Total active employee headcount (`/admin/employees`)
   4. **Quick Navigation Cards**: Links to Profile, Attendance, Leave, and Salary.
   5. **Weekly Attendance Summary**: Visual 7-day status grid (Present, Half-day, Leave, Absent).
-  6. **Leave Balances**: Paid, Sick, and Unpaid leave usage vs entitlement.
+  6. **Leave Balances**: Paid and Sick leave usage vs entitlement, plus the uncapped Unpaid leave option.
   7. **Recent Activity Feed**: Log of recent user actions (check-ins, leave submissions).
   8. **My Latest Leave Requests**: Table showing recent leave requests and status pills.
 
@@ -201,7 +201,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
   - `ProfileForm` component (`updateOwnProfileAction` in `src/actions/profile.ts`)
   - `Avatar` component (`src/components/Avatar.tsx`)
 - **Data Display**:
-  - Personal Details (Employee Code, Email, Phone, DOB, Address).
+  - Personal Details (Employee Code, Email, Phone, Address).
   - Job Details (Job Title, Department, Employment Type, Date of Joining, Role).
   - Salary Structure snapshot (Read-only).
   - Documents list.
