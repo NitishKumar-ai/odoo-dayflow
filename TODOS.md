@@ -122,6 +122,35 @@ but generated migrations are the right thing against a real database.
 
 ## Design
 
+### Bring the landing hero art back onto the Working Day brand
+
+**What:** Replace `public/marketing/dayflow-product-video-hero.jpg` with art that
+matches the shipped identity.
+
+**Why:** The current hero contradicts the product it advertises. It shows a blue
+sans-serif "Dayflow" wordmark over a blue-sidebar dashboard reading **$4,680.00**,
+while the real app uses the cream/black/green Working Day identity and renders
+**₹130,500**. `DESIGN.md` asks that public-facing work extend the Working Day
+direction. Found by /qa on 2026-08-22 (ISSUE-005) and deferred there because
+replacing brand art is a design call, not a QA fix.
+
+### Stop the section headline breaking mid-word
+
+**What:** "From first check-in / to final payslip." breaks at the hyphen at
+desktop widths, orphaning "in" on its own line. Use a non-breaking hyphen
+(`&#8209;`) or `white-space:nowrap` on that token. Renders correctly at 375px.
+
+**Why:** Cosmetic, but it is the first headline below the fold on the marketing
+page. Found by /qa on 2026-08-22 (ISSUE-004).
+
+### Match the password field affordances across auth forms
+
+**What:** `/signup` has no password "Show" toggle; `/signin` does.
+
+**Why:** Two adjacent forms behaving differently for the same field type.
+Found by /qa on 2026-08-22 (ISSUE-006).
+
+
 ### Replace the dashboard card mosaic with a real layout
 
 **What:** Stop rendering every dashboard region as an identical rounded card.
