@@ -27,7 +27,6 @@ export default function SignUpPage() {
     employeeCode: "",
     email: "",
     password: "",
-    role: "employee",
   });
 
   // Password rules evaluation
@@ -162,25 +161,6 @@ export default function SignUpPage() {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Role Selector */}
-        <div>
-          <label className="label" htmlFor="role">
-            Organization Role
-          </label>
-          <select
-            {...field("role")}
-            className="input font-medium"
-          >
-            <option value="employee">Staff / Team Member (Standard Access)</option>
-            <option value="admin">HR Manager / Administrator (Full Access)</option>
-          </select>
-          <p className="mt-1 text-[11px] text-muted">
-            {values.role === "admin"
-              ? "Admins can manage staff records, approvals, payroll structures, and company attendance."
-              : "Standard employees can clock hours, apply for leaves, and view their payroll slips."}
-          </p>
         </div>
 
         <SubmitButton

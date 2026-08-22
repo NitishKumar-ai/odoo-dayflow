@@ -72,6 +72,14 @@ describe("authentication pages", () => {
     }
   });
 
+  it("does not offer administrator access during public signup", () => {
+    render(<SignUpPage />);
+
+    expect(screen.queryByLabelText(/organization role/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/administrator \(full access\)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/admins can manage/i)).not.toBeInTheDocument();
+  });
+
   it("shows partial signup password progress without marking unmet rules", async () => {
     const user = userEvent.setup();
     render(<SignUpPage />);
