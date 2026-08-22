@@ -55,7 +55,7 @@ export default async function AdminEmployeesPage({ searchParams }: Props) {
               name="q"
               defaultValue={q}
               placeholder="Search by name, employee code, or department..."
-              className="input pl-10 text-xs"
+              className="input pl-10"
             />
           </div>
           <button type="submit" className="btn-secondary btn-sm text-xs font-bold shrink-0">
