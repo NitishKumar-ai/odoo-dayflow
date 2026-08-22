@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, lte, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import { db, employees, users, salaryStructures, documents } from "@/db";
 import { today } from "./dates";
 
@@ -34,6 +34,28 @@ export async function getEmployeeDetail(employeeId: string) {
   return row ?? null;
 }
 
+type SalaryRow = typeof salaryStructures.$inferSelect;
+
+/**
+ * Which revision applies right now: the latest one already in force, or failing
+ * that the soonest upcoming one. Shared by the single- and batch-lookup paths so
+ * the two can never disagree.
+ */
+export function pickCurrentSalary(
+  rows: SalaryRow[],
+  onDate: string = today(),
+): SalaryRow | null {
+  const inForce = rows
+    .filter((r) => r.effectiveFrom <= onDate)
+    .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom));
+  if (inForce.length) return inForce[0];
+
+  const upcoming = [...rows].sort((a, b) =>
+    a.effectiveFrom.localeCompare(b.effectiveFrom),
+  );
+  return upcoming[0] ?? null;
+}
+
 /** The structure in force today; falls back to the earliest future one. */
 export async function getCurrentSalary(employeeId: string) {
   const [current] = await db
@@ -58,6 +80,43 @@ export async function getCurrentSalary(employeeId: string) {
     .limit(1);
 
   return upcoming ?? null;
+}
+
+/** Postgres caps a statement at 65535 bind parameters; stay far below it. */
+const ID_CHUNK = 1000;
+
+/**
+ * Batch version of getCurrentSalary. The payroll table needs one row per
+ * employee; calling the single lookup in a loop was one to two queries per
+ * person. DISTINCT ON makes Postgres pick the applicable revision, so the full
+ * salary history never reaches Node.
+ *
+ * The ordering encodes the same rule as pickCurrentSalary: revisions already in
+ * force come first, and within each group the one closest to the date wins —
+ * the latest below it, or the soonest above it.
+ */
+export async function getCurrentSalaries(
+  employeeIds: string[],
+  onDate: string = today(),
+): Promise<Map<string, SalaryRow>> {
+  const out = new Map<string, SalaryRow>();
+
+  for (let i = 0; i < employeeIds.length; i += ID_CHUNK) {
+    const chunk = employeeIds.slice(i, i + ID_CHUNK);
+    const rows = await db
+      .selectDistinctOn([salaryStructures.employeeId])
+      .from(salaryStructures)
+      .where(inArray(salaryStructures.employeeId, chunk))
+      .orderBy(
+        salaryStructures.employeeId,
+        sql`(${salaryStructures.effectiveFrom} <= ${onDate}::date) desc`,
+        sql`abs(${salaryStructures.effectiveFrom} - ${onDate}::date) asc`,
+      );
+
+    for (const row of rows) out.set(row.employeeId, row);
+  }
+
+  return out;
 }
 
 export async function getSalaryHistory(employeeId: string) {

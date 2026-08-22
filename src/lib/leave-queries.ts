@@ -3,9 +3,17 @@ import { and, eq, ne, sql } from "drizzle-orm";
 import { db, leaveRequests, leaveBalances } from "@/db";
 import type { LeaveType } from "./leave";
 
-/** Days already committed this year for a leave type (approved + still pending). */
-export async function daysUsed(employeeId: string, leaveType: LeaveType, year: number) {
-  const [row] = await db
+/**
+ * Days already committed this year for a leave type (approved + still pending).
+ * Accepts a transaction so the balance check can run inside the caller's lock.
+ */
+export async function daysUsed(
+  employeeId: string,
+  leaveType: LeaveType,
+  year: number,
+  tx: Pick<typeof db, "select"> = db,
+) {
+  const [row] = await tx
     .select({ total: sql<number>`coalesce(sum(${leaveRequests.days}), 0)::int` })
     .from(leaveRequests)
     .where(

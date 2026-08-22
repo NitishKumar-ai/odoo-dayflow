@@ -2,7 +2,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db, employees, users } from "@/db";
 import { requireAdmin } from "@/lib/auth";
-import { getCurrentSalary } from "@/lib/employee-queries";
+import { getCurrentSalaries } from "@/lib/employee-queries";
 import { formatDate } from "@/lib/dates";
 import { formatMoney, gross, net } from "@/lib/money";
 import { Avatar } from "@/components/Avatar";
@@ -33,9 +33,9 @@ export default async function AdminPayrollPage() {
     .innerJoin(users, eq(users.id, employees.userId))
     .orderBy(employees.firstName);
 
-  const rows = await Promise.all(
-    staff.map(async (s) => ({ ...s, salary: await getCurrentSalary(s.id) })),
-  );
+  // One query for every employee's salary, not one query per employee.
+  const salaries = await getCurrentSalaries(staff.map((s) => s.id));
+  const rows = staff.map((s) => ({ ...s, salary: salaries.get(s.id) ?? null }));
 
   const active = rows.filter((r) => r.isActive);
   const currency = active.find((r) => r.salary)?.salary?.currency ?? "INR";
