@@ -26,6 +26,7 @@ export const leaveStatusEnum = pgEnum("leave_status", [
   "approved",
   "rejected",
 ]);
+export const payrollStatusEnum = pgEnum("payroll_status", ["draft", "completed"]);
 
 /** Auth identity. Every user also has exactly one employee profile. */
 export const users = pgTable("users", {
@@ -170,6 +171,54 @@ export const activityLog = pgTable(
   (t) => [index("activity_employee_idx").on(t.employeeId, t.createdAt)],
 );
 
+export const payrollRuns = pgTable(
+  "payroll_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    year: integer("year").notNull(),
+    month: integer("month").notNull(),
+    payPeriodStart: date("pay_period_start").notNull(),
+    payPeriodEnd: date("pay_period_end").notNull(),
+    status: payrollStatusEnum("status").notNull().default("draft"),
+    totalGross: numeric("total_gross", { precision: 12, scale: 2 }).notNull().default("0"),
+    totalDeductions: numeric("total_deductions", { precision: 12, scale: 2 }).notNull().default("0"),
+    totalNet: numeric("total_net", { precision: 12, scale: 2 }).notNull().default("0"),
+    employeeCount: integer("employee_count").notNull().default(0),
+    processedByUserId: uuid("processed_by_user_id").references(() => users.id),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("payroll_run_year_month").on(t.year, t.month)],
+);
+
+export const payslips = pgTable(
+  "payslips",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    payrollRunId: uuid("payroll_run_id")
+      .notNull()
+      .references(() => payrollRuns.id, { onDelete: "cascade" }),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    month: integer("month").notNull(),
+    basic: numeric("basic", { precision: 12, scale: 2 }).notNull().default("0"),
+    hra: numeric("hra", { precision: 12, scale: 2 }).notNull().default("0"),
+    allowances: numeric("allowances", { precision: 12, scale: 2 }).notNull().default("0"),
+    deductions: numeric("deductions", { precision: 12, scale: 2 }).notNull().default("0"),
+    gross: numeric("gross", { precision: 12, scale: 2 }).notNull().default("0"),
+    net: numeric("net", { precision: 12, scale: 2 }).notNull().default("0"),
+    currency: text("currency").notNull().default("INR"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("payslip_run_employee").on(t.payrollRunId, t.employeeId),
+    unique("payslip_employee_period").on(t.employeeId, t.year, t.month),
+    index("payslip_employee_idx").on(t.employeeId),
+  ],
+);
+
 export const usersRelations = relations(users, ({ one }) => ({
   employee: one(employees, { fields: [users.id], references: [employees.userId] }),
 }));
@@ -180,6 +229,17 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
   leaveRequests: many(leaveRequests),
   salaryStructures: many(salaryStructures),
   documents: many(documents),
+  payslips: many(payslips),
+}));
+
+export const payrollRunsRelations = relations(payrollRuns, ({ many, one }) => ({
+  payslips: many(payslips),
+  processedBy: one(users, { fields: [payrollRuns.processedByUserId], references: [users.id] }),
+}));
+
+export const payslipsRelations = relations(payslips, ({ one }) => ({
+  payrollRun: one(payrollRuns, { fields: [payslips.payrollRunId], references: [payrollRuns.id] }),
+  employee: one(employees, { fields: [payslips.employeeId], references: [employees.id] }),
 }));
 
 export type User = typeof users.$inferSelect;
@@ -187,3 +247,5 @@ export type Employee = typeof employees.$inferSelect;
 export type Attendance = typeof attendance.$inferSelect;
 export type LeaveRequest = typeof leaveRequests.$inferSelect;
 export type SalaryStructure = typeof salaryStructures.$inferSelect;
+export type PayrollRun = typeof payrollRuns.$inferSelect;
+export type Payslip = typeof payslips.$inferSelect;

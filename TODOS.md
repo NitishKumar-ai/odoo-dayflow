@@ -66,23 +66,6 @@ fixtures from `src/db/seed.ts` rather than inventing new ones.
 
 ## Payroll
 
-### Payslips and reports
-
-**What:** Generate a downloadable payslip per employee per month, and the
-attendance and salary reports named in section 6.
-
-**Why:** Listed as a future enhancement in the requirements document. Employees
-can see the salary structure but have nothing to keep for a landlord or a bank.
-
-**Context:** Needs a pay-period concept, which the data model does not have yet:
-`salary_structures` is versioned by effective date, but nothing records that a
-given month was paid. Add a payroll-run table before the PDF work, otherwise
-payslips get regenerated from current data and silently change after a raise.
-
-**Effort:** L
-**Priority:** P3
-**Depends on:** A pay-period model.
-
 ## Infrastructure
 
 ### Turn on CI
@@ -176,6 +159,12 @@ admin hubs.
 Created a hosted environment architecture with managed PostgreSQL, production secrets template (`.env.production.example`), initial admin provisioner script (`npm run db:create-admin`), and versioned database migrations (`drizzle/`).
 
 **Completed:** v0.2.0.1 (2026-08-22)
+
+### Create payroll runs, payslips, and reports (#15)
+
+Implemented pay-period data model (`payroll_runs`, `payslips`), Drizzle migration, monthly payroll run server action (`processPayrollRunAction`), employee printable payslip modal (`PayslipView`), admin payroll run management, and monthly attendance/salary summary reports.
+
+**Completed:** v0.2.0.2 (2026-08-22)
 
 ### Make the interface usable on a phone
 

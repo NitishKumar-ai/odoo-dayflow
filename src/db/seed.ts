@@ -52,6 +52,8 @@ async function main() {
       documents,
       activityLog,
       emailVerificationTokens,
+      payrollRuns,
+      payslips,
     },
     { toDateKey },
     { deriveStatus },
@@ -67,6 +69,8 @@ async function main() {
   ]);
 
   console.log("Clearing existing data…");
+  await db.delete(payslips);
+  await db.delete(payrollRuns);
   await db.delete(activityLog);
   await db.delete(attendance);
   await db.delete(leaveRequests);
@@ -227,6 +231,63 @@ async function main() {
       .limit(1);
     return row.userId;
   }
+
+  // Generate a past payroll run for demo history
+  console.log("Generating sample payroll run & payslips…");
+  const prevMonth = now.getMonth() === 0 ? 12 : now.getMonth();
+  const runYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  const startDate = `${runYear}-${String(prevMonth).padStart(2, "0")}-01`;
+  const lastDay = new Date(runYear, prevMonth, 0).getDate();
+  const endDate = `${runYear}-${String(prevMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  const [demoRun] = await db
+    .insert(payrollRuns)
+    .values({
+      year: runYear,
+      month: prevMonth,
+      payPeriodStart: startDate,
+      payPeriodEnd: endDate,
+      status: "completed",
+      processedByUserId: await adminUserId(),
+      processedAt: now,
+    })
+    .returning({ id: payrollRuns.id });
+
+  let totalGross = 0;
+  let totalNet = 0;
+  let totalDeductions = 0;
+
+  for (const { person, employeeId } of createdIds) {
+    const grossVal = person.basic + person.hra + person.allowances;
+    const netVal = grossVal - person.deductions;
+    totalGross += grossVal;
+    totalNet += netVal;
+    totalDeductions += person.deductions;
+
+    await db.insert(payslips).values({
+      payrollRunId: demoRun.id,
+      employeeId,
+      year: runYear,
+      month: prevMonth,
+      basic: person.basic.toFixed(2),
+      hra: person.hra.toFixed(2),
+      allowances: person.allowances.toFixed(2),
+      deductions: person.deductions.toFixed(2),
+      gross: grossVal.toFixed(2),
+      net: netVal.toFixed(2),
+      currency: "INR",
+    });
+  }
+
+  await db
+    .update(payrollRuns)
+    .set({
+      totalGross: totalGross.toFixed(2),
+      totalDeductions: totalDeductions.toFixed(2),
+      totalNet: totalNet.toFixed(2),
+      employeeCount: createdIds.length,
+    })
+    .where(eq(payrollRuns.id, demoRun.id));
 
   for (const message of seedCompletionMessages(people.length, people[0].email, people[1].email)) {
     console.log(message);
