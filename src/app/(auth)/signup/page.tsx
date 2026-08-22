@@ -5,11 +5,21 @@ import { useActionState } from "react";
 import { signUpAction, type FormState } from "@/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
+import { useFields } from "@/components/useFields";
 
 const initial: FormState = {};
 
 export default function SignUpPage() {
   const [state, action] = useActionState(signUpAction, initial);
+  // Controlled, so a rejected password does not wipe the whole form.
+  const { field } = useFields({
+    firstName: "",
+    lastName: "",
+    employeeCode: "",
+    email: "",
+    password: "",
+    role: "employee",
+  });
 
   return (
     <div className="card p-6">
@@ -24,30 +34,23 @@ export default function SignUpPage() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label" htmlFor="firstName">First name</label>
-            <input id="firstName" name="firstName" required className="input" />
+            <input {...field("firstName")} required className="input" />
           </div>
           <div>
             <label className="label" htmlFor="lastName">Last name</label>
-            <input id="lastName" name="lastName" className="input" />
+            <input {...field("lastName")} className="input" />
           </div>
         </div>
 
         <div>
           <label className="label" htmlFor="employeeCode">Employee ID</label>
-          <input
-            id="employeeCode"
-            name="employeeCode"
-            required
-            className="input"
-            placeholder="EMP1042"
-          />
+          <input {...field("employeeCode")} required className="input" placeholder="EMP1042" />
         </div>
 
         <div>
           <label className="label" htmlFor="email">Email</label>
           <input
-            id="email"
-            name="email"
+            {...field("email")}
             type="email"
             autoComplete="email"
             required
@@ -59,8 +62,7 @@ export default function SignUpPage() {
         <div>
           <label className="label" htmlFor="password">Password</label>
           <input
-            id="password"
-            name="password"
+            {...field("password")}
             type="password"
             autoComplete="new-password"
             required
@@ -73,13 +75,15 @@ export default function SignUpPage() {
 
         <div>
           <label className="label" htmlFor="role">Role</label>
-          <select id="role" name="role" className="input" defaultValue="employee">
+          <select {...field("role")} className="input">
             <option value="employee">Employee</option>
             <option value="admin">HR / Admin</option>
           </select>
         </div>
 
-        <SubmitButton pendingLabel="Creating account…">Create account</SubmitButton>
+        <SubmitButton pendingLabel="Creating account…" className="btn-primary w-full">
+          Create account
+        </SubmitButton>
       </form>
 
       <p className="mt-5 text-sm text-muted">

@@ -5,11 +5,13 @@ import { useActionState } from "react";
 import { signInAction, type FormState } from "@/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
+import { useFields } from "@/components/useFields";
 
 const initial: FormState = {};
 
 export default function SignInPage() {
   const [state, action] = useActionState(signInAction, initial);
+  const { field } = useFields({ email: "", password: "" });
 
   return (
     <div className="card p-6">
@@ -22,8 +24,7 @@ export default function SignInPage() {
         <div>
           <label className="label" htmlFor="email">Email</label>
           <input
-            id="email"
-            name="email"
+            {...field("email")}
             type="email"
             autoComplete="email"
             required
@@ -35,8 +36,7 @@ export default function SignInPage() {
         <div>
           <label className="label" htmlFor="password">Password</label>
           <input
-            id="password"
-            name="password"
+            {...field("password")}
             type="password"
             autoComplete="current-password"
             required
@@ -45,8 +45,8 @@ export default function SignInPage() {
           />
         </div>
 
-        <SubmitButton pendingLabel="Signing in…">
-          <span className="w-full">Sign in</span>
+        <SubmitButton pendingLabel="Signing in…" className="btn-primary w-full">
+          Sign in
         </SubmitButton>
       </form>
 
