@@ -80,6 +80,7 @@ never enable it for a real company database.
 | 3.4 Attendance (check-in/out, daily + weekly) | `src/app/(app)/attendance/`, `src/app/(app)/admin/attendance/`, `src/actions/attendance.ts` |
 | 3.5 Leave apply + approve | `src/app/(app)/leave/`, `src/app/(app)/admin/leave/`, `src/actions/leave.ts` |
 | 3.6 Payroll (read-only / admin edit) | `src/app/(app)/payroll/`, `src/app/(app)/admin/payroll/` |
+| Delivery progress (beyond the spec) | `src/app/(app)/admin/project/` |
 
 Authorisation lives in `src/lib/auth.ts`: `requireUser()` and `requireAdmin()`
 run in server components and in every server action, so a URL alone never grants
