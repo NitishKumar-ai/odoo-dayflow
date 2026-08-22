@@ -47,17 +47,17 @@ export default async function AppLayout({
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="app-shell flex min-h-screen flex-col bg-background">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md shadow-xs">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
+      <header className="app-header sticky top-0 z-40 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 lg:flex-nowrap lg:px-8">
           {/* Brand Logo */}
           <Link href="/dashboard" className="transition-opacity hover:opacity-90">
             <Brand size="md" />
           </Link>
 
           {/* Primary Navigation */}
-          <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain py-1">
+          <div className="order-3 min-w-0 basis-full overflow-x-auto overscroll-x-contain py-1 lg:order-none lg:basis-auto lg:flex-1">
             <Nav items={isAdmin ? adminNav : employeeNav} />
           </div>
 
@@ -65,7 +65,7 @@ export default async function AppLayout({
           <div className="flex items-center gap-3">
             <Link
               href="/profile"
-              className="flex min-h-11 shrink-0 items-center gap-2.5 rounded-xl border border-line bg-surface p-1.5 shadow-xs transition-colors hover:bg-surface-muted hover:border-brand/40 sm:pr-3"
+              className="flex min-h-11 shrink-0 items-center gap-2.5 rounded-md border border-foreground/30 bg-surface p-1.5 transition-colors hover:border-brand sm:pr-3"
             >
               <Avatar name={user.name} size={32} />
               <div className="hidden text-left sm:block">
@@ -88,7 +88,7 @@ export default async function AppLayout({
               <button
                 type="submit"
                 title="Sign out of Dayflow"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-surface text-muted shadow-xs transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:border-rose-800/40 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-foreground/30 bg-surface text-muted transition-colors hover:border-danger hover:bg-danger-soft hover:text-danger"
               >
                 <IconLogOut size={16} />
               </button>
@@ -136,12 +136,12 @@ export default async function AppLayout({
       </header>
 
       {/* Main Content Area */}
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <main className="app-main mx-auto w-full max-w-[1480px] flex-1 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-line/60 bg-surface py-6 text-center text-xs text-muted">
+      <footer className="app-footer py-6 text-center text-xs">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} Dayflow HRMS. Every workday, perfectly aligned.</p>
           <div className="flex items-center gap-4 text-xs font-medium">

@@ -5,6 +5,8 @@ import {
   FULL_DAY_HOURS,
   HALF_DAY_HOURS,
   STATUS_LABEL,
+  BUSINESS_DAYS_PER_WEEK,
+  countPresentBusinessDays,
 } from "@/lib/attendance";
 
 function at(hour: number, minute = 0) {
@@ -64,5 +66,43 @@ describe("status labels", () => {
       "leave",
       "present",
     ]);
+  });
+});
+
+describe("countPresentBusinessDays", () => {
+  // Mon 2026-08-17 through Sun 2026-08-23.
+  const weekday = { status: "present", workDate: "2026-08-17" };
+  const saturday = { status: "present", workDate: "2026-08-22" };
+  const sunday = { status: "present", workDate: "2026-08-23" };
+
+  it("counts weekday attendance", () => {
+    expect(
+      countPresentBusinessDays([
+        weekday,
+        { status: "present", workDate: "2026-08-18" },
+        { status: "present", workDate: "2026-08-19" },
+      ]),
+    ).toBe(3);
+  });
+
+  it("never exceeds the five-day denominator when a weekend is worked", () => {
+    const fullWeek = ["17", "18", "19", "20", "21"].map((d) => ({
+      status: "present",
+      workDate: `2026-08-${d}`,
+    }));
+    const count = countPresentBusinessDays([...fullWeek, saturday, sunday]);
+    expect(count).toBe(BUSINESS_DAYS_PER_WEEK);
+    expect(count).toBeLessThanOrEqual(BUSINESS_DAYS_PER_WEEK);
+  });
+
+  it("ignores days that are not present", () => {
+    expect(
+      countPresentBusinessDays([
+        weekday,
+        { status: "half_day", workDate: "2026-08-18" },
+        { status: "leave", workDate: "2026-08-19" },
+        { status: "absent", workDate: "2026-08-20" },
+      ]),
+    ).toBe(1);
   });
 });

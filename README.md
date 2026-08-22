@@ -55,6 +55,8 @@ Seeded with the password provided through `DEMO_SEED_PASSWORD`:
 The seed also creates four more employees, 30 days of attendance history, and a
 spread of leave requests including two awaiting approval.
 
+For a presenter's script and the current demo password, see [DEMO.md](DEMO.md).
+
 ## Scripts
 
 | Command | What it does |

@@ -115,3 +115,26 @@ The business rules in `src/lib/` (leave-day counting, attendance status
 derivation, salary arithmetic, password rules) were chosen where the
 requirements document was silent. They are the highest-value tests in the
 repo — change them deliberately, and update the tests in the same commit.
+
+## Deploy Configuration (configured by /setup-deploy)
+
+- Platform: Vercel
+- Production URL: https://odoo-dayflow-steel.vercel.app
+- Deploy workflow: auto-deploy on push to `main`, or `vercel --prod --yes`
+- Deploy status command: `vercel ls --prod`
+- Merge method: squash
+- Project type: web app
+- Post-deploy health check: https://odoo-dayflow-steel.vercel.app/signin
+
+### Custom deploy hooks
+
+- Pre-merge: `npm test && npm run typecheck && npm run build`
+- Deploy trigger: automatic on push to `main`
+- Deploy status: `vercel inspect https://odoo-dayflow-steel.vercel.app`
+- Health check: https://odoo-dayflow-steel.vercel.app/signin
+
+## Design System
+
+Always read `DESIGN.md` before changing visual design, brand identity, typography,
+color, layout, or motion. New public-facing work should extend the Working Day
+direction and preserve its accessibility rules.

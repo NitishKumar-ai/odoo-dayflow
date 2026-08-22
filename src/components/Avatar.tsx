@@ -16,14 +16,14 @@ export function Avatar({
     .map((p) => p[0]?.toUpperCase())
     .join("");
 
-  // Color generator based on name hash
+  // Solid operational colors keep avatars distinct without breaking the brand system.
   const colors = [
-    "from-blue-500 to-indigo-600",
-    "from-emerald-500 to-teal-600",
-    "from-purple-500 to-pink-600",
-    "from-amber-500 to-orange-600",
-    "from-cyan-500 to-blue-600",
-    "from-rose-500 to-red-600",
+    "bg-brand",
+    "bg-slate-700",
+    "bg-amber-700",
+    "bg-teal-700",
+    "bg-blue-800",
+    "bg-danger",
   ];
   const charCodeSum = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const colorScheme = colors[charCodeSum % colors.length];
@@ -38,13 +38,13 @@ export function Avatar({
           width={size}
           height={size}
           style={{ width: size, height: size }}
-          className="rounded-2xl object-cover ring-2 ring-line/80 shadow-xs"
+          className="rounded-md object-cover ring-1 ring-foreground/20"
         />
       ) : (
         <span
           aria-hidden
           style={{ width: size, height: size, fontSize: Math.max(11, size * 0.36) }}
-          className={`grid place-items-center rounded-2xl bg-gradient-to-tr ${colorScheme} font-bold text-white shadow-xs ring-2 ring-line/80`}
+          className={`grid place-items-center rounded-md ${colorScheme} font-bold text-white ring-1 ring-foreground/20`}
         >
           {initials || "?"}
         </span>

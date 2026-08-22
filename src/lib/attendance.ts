@@ -1,4 +1,4 @@
-import { hoursBetween } from "./dates";
+import { hoursBetween, isWeekend } from "./dates";
 
 /**
  * The spec lists Present / Absent / Half-day / Leave but never says how a day
@@ -42,4 +42,18 @@ export function workedHours(checkInAt: Date | null, checkOutAt: Date | null): st
   const hours = Math.floor(h);
   const mins = Math.round((h - hours) * 60);
   return `${hours}h ${mins}m`;
+}
+
+/** Business days in a Monday-start week — the denominator the dashboard shows. */
+export const BUSINESS_DAYS_PER_WEEK = 5;
+
+/**
+ * Days counted as present for the weekly "x / 5" metric. Weekend rows are
+ * excluded: a Saturday check-in is real attendance, but counting it against a
+ * five-day denominator renders as "6 / 5".
+ */
+export function countPresentBusinessDays(
+  rows: { status: string; workDate: string }[],
+): number {
+  return rows.filter((r) => r.status === "present" && !isWeekend(r.workDate)).length;
 }
