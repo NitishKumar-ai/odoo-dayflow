@@ -12,7 +12,9 @@ npm run build     # production build
 npm run start     # serve the production build
 npm run typecheck # tsc --noEmit
 npm test          # Vitest (see ## Testing below)
-npm run db:push   # apply src/db/schema.ts to DATABASE_URL
+npm run db:push   # apply src/db/schema.ts to a development DATABASE_URL
+npm run db:generate # write a SQL migration from schema changes
+npm run db:migrate  # apply committed migrations in drizzle/
 npm run db:seed   # wipe and reseed demo data
 ```
 

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db, leaveRequests, leaveBalances, attendance, employees } from "@/db";
 import { requireUser, requireAdmin } from "@/lib/auth";
 import { countLeaveDays, LEAVE_TYPE_LABEL } from "@/lib/leave";
-import { daysUsed } from "@/lib/leave-queries";
+import { daysUsed, ensureLeaveBalances } from "@/lib/leave-queries";
 import { logActivity } from "@/lib/activity";
 import { eachDate, isWeekend, formatDate } from "@/lib/dates";
 
@@ -70,6 +70,7 @@ export async function applyLeaveAction(
     }
 
     if (leaveType !== "unpaid") {
+      await ensureLeaveBalances(user.employeeId, year, tx);
       const [balance] = await tx
         .select({ entitled: leaveBalances.entitledDays })
         .from(leaveBalances)

@@ -26,6 +26,10 @@ export const leaveStatusEnum = pgEnum("leave_status", [
   "approved",
   "rejected",
 ]);
+export const payrollRunStatusEnum = pgEnum("payroll_run_status", [
+  "draft",
+  "finalized",
+]);
 
 /** Auth identity. Every user also has exactly one employee profile. */
 export const users = pgTable("users", {
@@ -170,6 +174,47 @@ export const activityLog = pgTable(
   (t) => [index("activity_employee_idx").on(t.employeeId, t.createdAt)],
 );
 
+/**
+ * One company-wide pay period. Amounts live on payslips so a later raise
+ * cannot rewrite a month that has already been paid.
+ */
+export const payrollRuns = pgTable(
+  "payroll_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    status: payrollRunStatusEnum("status").notNull().default("draft"),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id),
+    finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("payroll_run_period").on(t.periodStart, t.periodEnd)],
+);
+
+export const payslips = pgTable(
+  "payslips",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    payrollRunId: uuid("payroll_run_id")
+      .notNull()
+      .references(() => payrollRuns.id, { onDelete: "cascade" }),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id, { onDelete: "cascade" }),
+    salaryStructureId: uuid("salary_structure_id").references(() => salaryStructures.id),
+    currency: text("currency").notNull().default("INR"),
+    basic: numeric("basic", { precision: 12, scale: 2 }).notNull().default("0"),
+    hra: numeric("hra", { precision: 12, scale: 2 }).notNull().default("0"),
+    allowances: numeric("allowances", { precision: 12, scale: 2 }).notNull().default("0"),
+    deductions: numeric("deductions", { precision: 12, scale: 2 }).notNull().default("0"),
+    gross: numeric("gross", { precision: 12, scale: 2 }).notNull().default("0"),
+    net: numeric("net", { precision: 12, scale: 2 }).notNull().default("0"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("payslip_run_employee").on(t.payrollRunId, t.employeeId)],
+);
+
 export const usersRelations = relations(users, ({ one }) => ({
   employee: one(employees, { fields: [users.id], references: [employees.userId] }),
 }));
@@ -180,6 +225,16 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
   leaveRequests: many(leaveRequests),
   salaryStructures: many(salaryStructures),
   documents: many(documents),
+  payslips: many(payslips),
+}));
+
+export const payrollRunsRelations = relations(payrollRuns, ({ many }) => ({
+  payslips: many(payslips),
+}));
+
+export const payslipsRelations = relations(payslips, ({ one }) => ({
+  run: one(payrollRuns, { fields: [payslips.payrollRunId], references: [payrollRuns.id] }),
+  employee: one(employees, { fields: [payslips.employeeId], references: [employees.id] }),
 }));
 
 export type User = typeof users.$inferSelect;
@@ -187,3 +242,5 @@ export type Employee = typeof employees.$inferSelect;
 export type Attendance = typeof attendance.$inferSelect;
 export type LeaveRequest = typeof leaveRequests.$inferSelect;
 export type SalaryStructure = typeof salaryStructures.$inferSelect;
+export type PayrollRun = typeof payrollRuns.$inferSelect;
+export type Payslip = typeof payslips.$inferSelect;

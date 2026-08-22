@@ -1,12 +1,13 @@
 # System and trade-offs — Dayflow
 
-Dayflow is an HR portal: employees clock in and out, apply for leave, and read
-their salary; HR approves leave, overrides attendance, and maintains pay.
+> [!NOTE]
+> This page is kept for backward compatibility. For the updated, complete technical documentation suite, see **[System Architecture & Trade-offs](System-Architecture-and-Trade-offs)**.
+
+---
+
+Dayflow is an HR portal: employees clock in and out, apply for leave, and read their salary; HR approves leave, overrides attendance, and maintains pay.
 
 This page explains **how the system is put together and what each choice costs**.
-Every decision below buys something and gives something up — the point is to
-record the price, so the next person changing this code knows whether the
-original bargain still holds.
 
 ---
 
@@ -54,24 +55,7 @@ original bargain still holds.
                                    └────────────────────────┘
 ```
 
-There is no API tier, no cache, no queue, no background worker. Everything the
-product does happens inside one request against one database.
-
-## Request lifecycle
-
-**Read.** A route's server component calls `requireUser()` / `requireAdmin()`,
-queries Drizzle directly, and renders. There is no loader, no client-side
-fetching, no serialised API payload — the query result *is* the render input.
-
-**Write.** A form posts to a `"use server"` action. The action re-derives the
-session (it never trusts a hidden field for identity), validates with Zod,
-mutates, appends to `activity_log`, then calls `revalidatePath()` for every view
-the change touches — including the other role's view. Approving leave, for
-example, revalidates `/admin/leave`, `/leave`, `/attendance`, and
-`/admin/attendance`.
-
-Every action returns the same shape, `{ error?: string; ok?: string }`, so the
-forms can share one rendering pattern.
+There is no API tier, no cache, no queue, no background worker. Everything the product does happens inside one request against one database.
 
 ---
 
@@ -392,11 +376,10 @@ In order, weighing risk against effort:
 
 Not missing by accident — decided against for this stage:
 
-- Payroll runs, payslips, and tax — only the salary *structure* is modelled.
-- Shifts, rosters, overtime, and holiday calendars.
-- The reporting manager relationship: `employees.manager_id` exists but no
-  feature reads it, so there is no approval chain — every admin can decide every
-  request.
-- Notifications of any kind.
-- Multi-tenancy. One deployment is one company; there is no `organisation_id`
-  anywhere, and adding one later touches every table and every query.
+For complete, detailed technical references, please consult:
+- **[System Architecture & Technical Trade-offs](System-Architecture-and-Trade-offs)**
+- **[Database Schema & ERD Reference](Database-Schema-and-ERD)**
+- **[Routing & Pages Catalog](Routing-and-Pages)**
+- **[Server Actions API Reference](Server-Actions-and-API)**
+- **[Developer Setup & Onboarding](Developer-Setup-and-Onboarding)**
+- **[Testing & Quality Assurance](Testing-and-Quality-Assurance)**

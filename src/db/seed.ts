@@ -67,6 +67,8 @@ async function main() {
   ]);
 
   console.log("Clearing existing data…");
+  await db.delete(payslips);
+  await db.delete(payrollRuns);
   await db.delete(activityLog);
   await db.delete(attendance);
   await db.delete(leaveRequests);

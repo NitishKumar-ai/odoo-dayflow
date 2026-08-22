@@ -35,10 +35,13 @@ Then:
 
 ```bash
 createdb dayflow
-npm run db:push
+npm run db:migrate
 npm run db:seed
 npm run dev
 ```
+
+A database that was created with an older `db:push` can keep using `npm run db:push`
+to pick up schema changes. `db:migrate` is the path for a fresh or hosted database.
 
 ### Demo accounts
 
@@ -60,13 +63,17 @@ For a presenter's script and the current demo password, see [DEMO.md](DEMO.md).
 |---|---|
 | `npm run dev` | Dev server on http://localhost:3000 |
 | `npm run build` | Production build |
-| `npm run db:push` | Apply `src/db/schema.ts` to the database |
+| `npm run db:push` | Apply `src/db/schema.ts` to a development database |
+| `npm run db:generate` | Write a SQL migration from schema changes |
+| `npm run db:migrate` | Apply committed migrations in `drizzle/` |
 | `npm run db:seed` | Wipe and reseed demo data |
 | `npm run typecheck` | `tsc --noEmit` |
 
 ## Documentation
 
-For a detailed technical guide on all application routes, layout hierarchies, parameters, authorization checks, and server actions, see [docs/ROUTING_PAGES.md](docs/ROUTING_PAGES.md).
+- **[Routing & Pages Guide](docs/ROUTING_PAGES.md)** — Layout hierarchies, route parameters, authorization checks, and page breakdown.
+- **[Server Actions API Reference](docs/SERVER_ACTIONS_API.md)** — Zod schemas, state signatures, business rules, and mutation side-effects.
+- **[Database Schema Reference](docs/DATABASE_SCHEMA.md)** — Drizzle ORM entity models, Postgres column types, constraints, and ERD.
 
 The seed command refuses to run with `NODE_ENV=production` unless
 `ALLOW_DEMO_SEED=true` is explicitly set. It always deletes existing data, so
