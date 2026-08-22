@@ -2,36 +2,11 @@
  * Demo data. Run with `npm run db:seed` — it clears the tables first.
  */
 import "./load-env";
+import { validateSeedEnvironment } from "./seed-environment";
 
-import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
-import { db } from "./index";
-import {
-  users,
-  employees,
-  attendance,
-  leaveRequests,
-  leaveBalances,
-  salaryStructures,
-  documents,
-  activityLog,
-  emailVerificationTokens,
-} from "./schema";
-import { toDateKey } from "../lib/dates";
-import { deriveStatus } from "../lib/attendance";
-import { DEFAULT_ENTITLEMENT, countLeaveDays } from "../lib/leave";
-
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required to seed demo accounts.`);
-  return value;
-}
-
-const PASSWORD = requiredEnv("DEMO_SEED_PASSWORD");
-
-if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
-  throw new Error("Refusing to wipe and seed a production database without ALLOW_DEMO_SEED=true.");
-}
+// Validate before importing the database client or any seed implementation.
+// This keeps an unsafe invocation from opening a connection, let alone deleting data.
+const PASSWORD = validateSeedEnvironment(process.env);
 
 type Person = {
   code: string;
@@ -63,6 +38,34 @@ function at(dateKey: string, hour: number, minute: number) {
 }
 
 async function main() {
+  const [
+    { default: bcrypt },
+    { eq },
+    { db },
+    {
+      users,
+      employees,
+      attendance,
+      leaveRequests,
+      leaveBalances,
+      salaryStructures,
+      documents,
+      activityLog,
+      emailVerificationTokens,
+    },
+    { toDateKey },
+    { deriveStatus },
+    { DEFAULT_ENTITLEMENT, countLeaveDays },
+  ] = await Promise.all([
+    import("bcryptjs"),
+    import("drizzle-orm"),
+    import("./index"),
+    import("./schema"),
+    import("../lib/dates"),
+    import("../lib/attendance"),
+    import("../lib/leave"),
+  ]);
+
   console.log("Clearing existing data…");
   await db.delete(activityLog);
   await db.delete(attendance);
