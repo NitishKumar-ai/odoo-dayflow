@@ -21,7 +21,10 @@ export function ProfileForm({
   const [form, setForm] = useState({ phone, address, photoUrl });
 
   function set<K extends keyof typeof form>(key: K, value: string) {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f: { phone: string; address: string; photoUrl: string }) => ({
+      ...f,
+      [key]: value,
+    }));
   }
 
   return (
@@ -41,7 +44,9 @@ export function ProfileForm({
             className="input"
             placeholder="+1 (555) 000-0000"
             value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              set("phone", e.target.value)
+            }
           />
         </div>
       </div>
@@ -57,7 +62,9 @@ export function ProfileForm({
           className="input"
           placeholder="Street address, City, State, ZIP..."
           value={form.address}
-          onChange={(e) => set("address", e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            set("address", e.target.value)
+          }
         />
       </div>
 
@@ -72,7 +79,9 @@ export function ProfileForm({
           className="input"
           placeholder="https://images.unsplash.com/..."
           value={form.photoUrl}
-          onChange={(e) => set("photoUrl", e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            set("photoUrl", e.target.value)
+          }
         />
         <p className="mt-1 text-[11px] text-muted">
           Provide an HTTPS image URL or leave blank to use your name initials.

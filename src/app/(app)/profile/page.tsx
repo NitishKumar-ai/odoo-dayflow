@@ -168,7 +168,7 @@ export default async function ProfilePage() {
               </p>
             ) : (
               <ul className="divide-y divide-line">
-                {docs.map((d) => (
+                {docs.map((d: (typeof docs)[number]) => (
                   <li key={d.id} className="py-2.5 flex items-center justify-between text-xs">
                     <span className="font-semibold text-foreground">{d.name}</span>
                     <span className="pill bg-surface-muted text-muted font-mono">{d.category}</span>

@@ -11,9 +11,11 @@ import {
   IconBriefcase,
 } from "@/components/Icons";
 
-export default async function AdminEmployeesPage({
-  searchParams,
-}: PageProps<"/admin/employees">) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function AdminEmployeesPage({ searchParams }: Props) {
   await requireAdmin();
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q : "";

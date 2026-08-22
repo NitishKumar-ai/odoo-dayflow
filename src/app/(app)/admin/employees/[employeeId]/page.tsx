@@ -41,10 +41,15 @@ import {
   IconTrendingUp,
 } from "@/components/Icons";
 
+type Props = {
+  params: Promise<{ employeeId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
 export default async function AdminEmployeeDetailPage({
   params,
   searchParams,
-}: PageProps<"/admin/employees/[employeeId]">) {
+}: Props) {
   await requireAdmin();
   const { employeeId } = await params;
   const search = await searchParams;
@@ -66,7 +71,9 @@ export default async function AdminEmployeeDetailPage({
         lte(attendance.workDate, week.end),
       ),
     );
-  const byDate = new Map(attendanceRows.map((r) => [r.workDate, r]));
+  const byDate = new Map<string, (typeof attendanceRows)[number]>(
+    attendanceRows.map((r: (typeof attendanceRows)[number]) => [r.workDate, r]),
+  );
 
   const requests = await db
     .select()
@@ -207,7 +214,7 @@ export default async function AdminEmployeeDetailPage({
               <p className="text-xs text-muted">No documents uploaded.</p>
             ) : (
               <ul className="divide-y divide-line text-xs">
-                {docs.map((d) => (
+                {docs.map((d: (typeof docs)[number]) => (
                   <li key={d.id} className="py-2 flex justify-between items-center">
                     <span className="font-medium text-foreground">{d.name}</span>
                     <span className="pill bg-surface-muted text-muted font-mono">{d.category}</span>
@@ -266,7 +273,7 @@ export default async function AdminEmployeeDetailPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {week.days.map((d) => {
+              {week.days.map((d: string) => {
                 const row = byDate.get(d);
                 const weekend = isWeekend(d);
 
@@ -360,7 +367,7 @@ export default async function AdminEmployeeDetailPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {history.map((h) => (
+                  {history.map((h: (typeof history)[number]) => (
                     <tr key={h.id} className="py-1.5">
                       <td className="py-2 font-medium">{formatDate(h.effectiveFrom)}</td>
                       <td className="py-2 tabular-nums">{formatMoney(gross(h), h.currency)}</td>
@@ -396,7 +403,7 @@ export default async function AdminEmployeeDetailPage({
             </div>
           ) : (
             <ul className="divide-y divide-line">
-              {requests.map((r) => (
+              {requests.map((r: (typeof requests)[number]) => (
                 <li key={r.id} className="p-4 hover:bg-surface-muted/30 transition-colors">
                   <div className="flex items-start justify-between gap-3">
                     <div>
