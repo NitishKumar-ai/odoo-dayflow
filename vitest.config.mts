@@ -1,13 +1,32 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
+
+const TEST_DATABASE_URL =
+  process.env.TEST_DATABASE_URL ?? "postgres://localhost:5432/dayflow_test";
 
 export default defineConfig({
   plugins: [react()],
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    alias: {
+      "server-only": fileURLToPath(
+        new URL("./test/helpers/server-only-stub.ts", import.meta.url),
+      ),
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: ["./test/setup.ts"],
+    globalSetup: ["./test/global-setup.ts"],
     include: ["test/**/*.test.{ts,tsx}"],
     globals: true,
+    // Integration tests share one database, so they must not run concurrently.
+    fileParallelism: false,
+    env: {
+      DATABASE_URL: TEST_DATABASE_URL,
+      SESSION_SECRET: "test-only-secret-not-used-for-anything-real-0123456789",
+      APP_URL: "http://localhost:3000",
+    },
   },
 });

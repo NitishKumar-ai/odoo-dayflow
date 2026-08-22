@@ -29,13 +29,36 @@ they are the most valuable tests in the project. No database, no server.
 Testing Library. Assert what a user sees and can do, never implementation
 detail.
 
-**Integration tests** — not yet present. Server actions touch Postgres through
-Drizzle; testing them needs a throwaway database per run.
+**Integration tests** — `test/*-actions.test.ts` and `test/session.test.ts`,
+each marked `// @vitest-environment node`. These run the real server actions
+against a real Postgres database, so the guards that fail silently are covered:
+leave balance and overlap checks, the self-lockout guard, deductions exceeding
+gross, approval writing through to attendance, and every rejection branch of
+`getSessionUser`.
 
-**End-to-end tests** — not yet present. Would need a live Postgres and a running
-dev server. The flows worth covering first: sign-up through verification,
-check-in/check-out, apply-for-leave, and HR approval writing through to
-attendance.
+The database is `dayflow_test`, set by `TEST_DATABASE_URL` (default
+`postgres://localhost:5432/dayflow_test`). `test/global-setup.ts` pushes the
+Drizzle schema into it once per run, so it always matches `src/db/schema.ts`
+with no migration step to remember. `resetDb()` truncates every table between
+tests, and `seedEmployee()` builds a user, profile, and leave balances in one
+call. Because they share one database, `fileParallelism` is off.
+
+Create it once locally:
+
+```bash
+createdb dayflow_test
+```
+
+Two gotchas worth knowing. `vi.useFakeTimers()` must be scoped with
+`{ toFake: ["Date"] }` — faking `setTimeout` deadlocks the Postgres driver.
+And `vi.mock` is hoisted above imports, so its factory has to be written
+inline rather than referencing an imported helper.
+
+**End-to-end tests** — not yet present. The server actions behind each flow are
+covered at the integration layer; what is still unproven is the wiring from a
+rendered page to those actions. The flows worth covering first: sign-up through
+verification, check-in/check-out over a full day, and HR approval seen from the
+employee's own attendance view.
 
 ## Conventions
 
