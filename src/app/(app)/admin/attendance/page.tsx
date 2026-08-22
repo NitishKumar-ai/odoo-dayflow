@@ -14,10 +14,16 @@ import {
 import { STATUS_LABEL, STATUS_TONE, workedHours } from "@/lib/attendance";
 import { Avatar } from "@/components/Avatar";
 import { AttendanceOverride } from "@/components/admin/AttendanceOverride";
+import {
+  IconArrowLeft,
+  IconArrowRight,
+} from "@/components/Icons";
 
-export default async function AdminAttendancePage({
-  searchParams,
-}: PageProps<"/admin/attendance">) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function AdminAttendancePage({ searchParams }: Props) {
   await requireAdmin();
   const params = await searchParams;
   const view = params.view === "week" ? "week" : "day";
@@ -31,6 +37,7 @@ export default async function AdminAttendancePage({
       lastName: employees.lastName,
       photoUrl: employees.photoUrl,
       department: employees.department,
+      jobTitle: employees.jobTitle,
       employeeCode: users.employeeCode,
     })
     .from(employees)
@@ -58,96 +65,134 @@ export default async function AdminAttendancePage({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="space-y-8">
+      {/* Title & View Switcher */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Attendance</h1>
-          <p className="text-sm text-muted">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            Company Attendance Master
+          </h1>
+          <p className="mt-1 text-sm text-muted">
             {view === "day"
-              ? `${formatDate(anchor)} · ${dayTotals.present} present, ${dayTotals.half_day} half-day, ${dayTotals.leave} on leave, ${dayTotals.absent} absent`
+              ? `${formatDate(anchor)} · ${dayTotals.present} Present, ${dayTotals.half_day} Half-day, ${dayTotals.leave} On Leave, ${dayTotals.absent} Absent`
               : `Week of ${formatDate(week.start)} – ${formatDate(week.end)}`}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/admin/attendance?view=day&date=${anchor}`}
-            className={view === "day" ? "btn-primary" : "btn-secondary"}
-          >
-            Daily
-          </Link>
-          <Link
-            href={`/admin/attendance?view=week&date=${anchor}`}
-            className={view === "week" ? "btn-primary" : "btn-secondary"}
-          >
-            Weekly
-          </Link>
-          <Link
-            href={`/admin/attendance?view=${view}&date=${addDays(anchor, view === "day" ? -1 : -7)}`}
-            className="btn-secondary"
-          >
-            ←
-          </Link>
-          <Link href={`/admin/attendance?view=${view}`} className="btn-secondary">
-            Today
-          </Link>
-          <Link
-            href={`/admin/attendance?view=${view}&date=${addDays(anchor, view === "day" ? 1 : 7)}`}
-            className="btn-secondary"
-          >
-            →
-          </Link>
+        {/* View mode & Date Navigation */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Day / Week toggle */}
+          <div className="rounded-xl border border-line bg-surface p-1 flex items-center shadow-xs">
+            <Link
+              href={`/admin/attendance?view=day&date=${anchor}`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                view === "day"
+                  ? "bg-brand text-white shadow-xs"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              Daily Matrix
+            </Link>
+            <Link
+              href={`/admin/attendance?view=week&date=${anchor}`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                view === "week"
+                  ? "bg-brand text-white shadow-xs"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              Weekly Heatmap
+            </Link>
+          </div>
+
+          {/* Previous / Today / Next */}
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/admin/attendance?view=${view}&date=${addDays(anchor, view === "day" ? -1 : -7)}`}
+              className="btn-secondary btn-sm"
+              title="Previous"
+            >
+              <IconArrowLeft size={14} />
+            </Link>
+            <Link
+              href={`/admin/attendance?view=${view}`}
+              className="btn-secondary btn-sm font-bold"
+            >
+              Today
+            </Link>
+            <Link
+              href={`/admin/attendance?view=${view}&date=${addDays(anchor, view === "day" ? 1 : 7)}`}
+              className="btn-secondary btn-sm"
+              title="Next"
+            >
+              <IconArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </div>
 
-      <section className="card overflow-hidden">
+      {/* Main Table Matrix */}
+      <section className="card overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           {view === "day" ? (
-            <table className="w-full min-w-[820px]">
-              <thead className="bg-surface-muted">
+            <table className="w-full min-w-[840px]">
+              <thead className="bg-surface-muted/60">
                 <tr>
-                  <th className="th">Employee</th>
-                  <th className="th">In / out</th>
-                  <th className="th">Hours</th>
-                  <th className="th">Status</th>
-                  <th className="th">Override</th>
+                  <th className="th">Team Member</th>
+                  <th className="th">Clock In / Out</th>
+                  <th className="th">Hours Logged</th>
+                  <th className="th">Current Status</th>
+                  <th className="th">Admin Override</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {staff.map((s) => {
                   const row = byKey.get(`${s.id}|${anchor}`);
                   const name = `${s.firstName} ${s.lastName}`.trim();
+
                   return (
-                    <tr key={s.id}>
+                    <tr key={s.id} className="hover:bg-surface-muted/30 transition-colors">
                       <td className="td">
                         <div className="flex items-center gap-3">
-                          <Avatar name={name} photoUrl={s.photoUrl} size={32} />
+                          <Avatar name={name} photoUrl={s.photoUrl} size={36} />
                           <div>
                             <Link
                               href={`/admin/employees/${s.id}`}
-                              className="font-medium hover:underline"
+                              className="font-bold text-foreground hover:text-brand hover:underline"
                             >
                               {name}
                             </Link>
-                            <p className="text-xs text-muted">{s.department || "—"}</p>
+                            <p className="text-xs text-muted">
+                              {s.employeeCode} · {s.department || "General"}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="td tabular-nums text-muted">
-                        {formatTime(row?.checkInAt ?? null)} – {formatTime(row?.checkOutAt ?? null)}
+
+                      <td className="td tabular-nums text-xs font-semibold text-muted">
+                        {row?.checkInAt ? (
+                          <span>
+                            {formatTime(row.checkInAt)} → {formatTime(row.checkOutAt)}
+                          </span>
+                        ) : (
+                          <span className="text-muted/50">—</span>
+                        )}
                       </td>
-                      <td className="td tabular-nums text-muted">
+
+                      <td className="td tabular-nums text-xs font-mono text-muted">
                         {workedHours(row?.checkInAt ?? null, row?.checkOutAt ?? null)}
                       </td>
+
                       <td className="td">
                         {row ? (
                           <span className={`pill ${STATUS_TONE[row.status]}`}>
                             {STATUS_LABEL[row.status]}
                           </span>
                         ) : (
-                          <span className="text-xs text-muted">No record</span>
+                          <span className="text-xs text-muted font-medium">No record</span>
                         )}
                       </td>
+
                       <td className="td">
                         <AttendanceOverride
                           employeeId={s.id}
@@ -162,14 +207,14 @@ export default async function AdminAttendancePage({
               </tbody>
             </table>
           ) : (
-            <table className="w-full min-w-[820px]">
-              <thead className="bg-surface-muted">
+            <table className="w-full min-w-[840px]">
+              <thead className="bg-surface-muted/60">
                 <tr>
-                  <th className="th">Employee</th>
+                  <th className="th">Team Member</th>
                   {week.days.map((d) => (
                     <th key={d} className="th text-center">
                       <div>{formatDay(d)}</div>
-                      <div className="font-normal normal-case text-muted">
+                      <div className="text-[10px] font-normal normal-case text-muted">
                         {d.slice(8)}
                       </div>
                     </th>
@@ -179,31 +224,35 @@ export default async function AdminAttendancePage({
               <tbody className="divide-y divide-line">
                 {staff.map((s) => {
                   const name = `${s.firstName} ${s.lastName}`.trim();
+
                   return (
-                    <tr key={s.id}>
+                    <tr key={s.id} className="hover:bg-surface-muted/30 transition-colors">
                       <td className="td">
                         <Link
                           href={`/admin/employees/${s.id}`}
-                          className="font-medium hover:underline"
+                          className="font-bold text-foreground hover:text-brand hover:underline"
                         >
                           {name}
                         </Link>
-                        <p className="text-xs text-muted">{s.employeeCode}</p>
+                        <p className="text-[11px] text-muted font-mono">{s.employeeCode}</p>
                       </td>
+
                       {week.days.map((d) => {
                         const row = byKey.get(`${s.id}|${d}`);
+                        const weekend = isWeekend(d);
+
                         return (
                           <td key={d} className="td text-center">
                             {row ? (
                               <span
                                 title={`${formatDate(d)}: ${STATUS_LABEL[row.status]}`}
-                                className={`pill ${STATUS_TONE[row.status]}`}
+                                className={`pill ${STATUS_TONE[row.status]} text-[10px] px-2`}
                               >
                                 {STATUS_LABEL[row.status].slice(0, 1)}
                               </span>
                             ) : (
-                              <span className="text-xs text-muted">
-                                {isWeekend(d) ? "·" : "—"}
+                              <span className="text-xs text-muted/50 font-mono">
+                                {weekend ? "·" : "—"}
                               </span>
                             )}
                           </td>
@@ -219,7 +268,7 @@ export default async function AdminAttendancePage({
       </section>
 
       <p className="text-xs text-muted">
-        Legend: P present · A absent · H half-day · L leave. Weekends show a dot.
+        <strong>Legend:</strong> P = Present · A = Absent · H = Half-day · L = On Leave. Weekends are marked with a dot.
       </p>
     </div>
   );

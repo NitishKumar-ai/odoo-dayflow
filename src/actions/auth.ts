@@ -28,7 +28,6 @@ const signUpSchema = z.object({
   lastName: z.string().trim().max(60).default(""),
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),
   password: z.string(),
-  role: z.enum(["employee", "admin"]),
 });
 
 const TOKEN_TTL_HOURS = 24;
@@ -43,7 +42,6 @@ export async function signUpAction(
     lastName: formData.get("lastName") ?? "",
     email: formData.get("email"),
     password: formData.get("password"),
-    role: formData.get("role"),
   });
 
   if (!parsed.success) {
@@ -80,7 +78,9 @@ export async function signUpAction(
         employeeCode: data.employeeCode,
         email: data.email,
         passwordHash: await hashPassword(data.password),
-        role: data.role,
+        // Public registration never grants privileges. Administrators can
+        // promote employees through the authenticated employee-management UI.
+        role: "employee",
       })
       .returning({ id: users.id });
 

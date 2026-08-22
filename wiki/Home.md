@@ -93,7 +93,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🔑 Demo Credentials
 
-Following seed execution, all demo accounts share the password **`Dayflow#2026`** and are pre-verified:
+Seeded demo accounts are already email-verified. Keep their credentials in
+local development configuration or a password manager; do not publish them in
+project documentation or deploy seeded credentials to production.
 
 | Email | Employee ID | System Role | Job Title | Department |
 |---|---|---|---|---|
@@ -109,22 +111,22 @@ Following seed execution, all demo accounts share the password **`Dayflow#2026`*
 ## 🗺️ Application Route Map
 
 ```
-/                               Root landing router (redirects to /dashboard or /signin)
-/signin                          (auth) Signed-out login page
-/signup                          (auth) Signed-out user registration page
-/verify-email                    Email verification landing & processing route
+/                              scaffold landing page (still the create-next-app default)
+/signin                        (auth)
+/signup                        (auth)  — register a standard employee account
+/verify-email                  email verification landing
 
-/dashboard                       (app) Employee main dashboard
-/attendance                      (app) Employee attendance tracker & check-in/out
-/leave                           (app) Employee leave request submission & history
-/payroll                         (app) Employee salary structure view (Read-only)
-/profile                         (app) Employee self-service profile editor
+/dashboard                     (app)   employee home
+/profile                       (app)   self-service profile
+/attendance                    (app)   own attendance
+/leave                         (app)   apply / history / balances
+/payroll                       (app)   own salary, read-only
 
-/admin/employees                 (app) HR Employee directory & search (Admin only)
-/admin/employees/[employeeId]    (app) HR Employee profile, salary & history editor (Admin only)
-/admin/attendance                (app) HR Daily/Weekly attendance manager & overrides (Admin only)
-/admin/leave                     (app) HR Leave approval & rejection queue (Admin only)
-/admin/payroll                   (app) HR Payroll overview & salary configuration (Admin only)
+/admin/employees               (app)   directory              — admin only
+/admin/employees/[employeeId]  (app)   edit profile + salary  — admin only
+/admin/attendance              (app)   override attendance    — admin only
+/admin/leave                   (app)   approve / reject       — admin only
+/admin/payroll                 (app)   salary structures      — admin only
 ```
 
 ---
