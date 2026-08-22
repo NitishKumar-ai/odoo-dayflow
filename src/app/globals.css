@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7f9;
+  --background: #f8fafc;
   --surface: #ffffff;
-  --surface-muted: #f2f4f7;
-  --border: #e3e6ea;
-  --foreground: #14181f;
-  --muted: #5f6b7a;
-  --brand: #2f5bea;
-  --brand-soft: #eaf0ff;
+  --surface-muted: #f1f5f9;
+  --surface-elevated: #ffffff;
+  --border: #e2e8f0;
+  --border-subtle: #edf2f7;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-soft: #eff6ff;
+  --brand-glow: rgba(37, 99, 235, 0.15);
+  --success: #10b981;
+  --success-soft: #ecfdf5;
+  --warning: #f59e0b;
+  --warning-soft: #fffbeb;
+  --danger: #ef4444;
+  --danger-soft: #fef2f2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0f14;
-    --surface: #141922;
-    --surface-muted: #1a2029;
-    --border: #262d38;
-    --foreground: #e8ecf2;
-    --muted: #98a3b3;
-    --brand: #6b8dff;
-    --brand-soft: #1b2540;
+    --background: #090d16;
+    --surface: #111827;
+    --surface-muted: #172033;
+    --surface-elevated: #1e293b;
+    --border: #1f293d;
+    --border-subtle: #162032;
+    --foreground: #f1f5f9;
+    --muted: #94a3b8;
+    --brand: #3b82f6;
+    --brand-hover: #60a5fa;
+    --brand-soft: #172554;
+    --brand-glow: rgba(59, 130, 246, 0.25);
+    --success: #34d399;
+    --success-soft: #064e3b;
+    --warning: #fbbf24;
+    --warning-soft: #451a03;
+    --danger: #f87171;
+    --danger-soft: #450a0a;
   }
 }
 
@@ -28,58 +48,236 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-elevated: var(--surface-elevated);
   --color-line: var(--border);
+  --color-line-subtle: var(--border-subtle);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer components {
+  /* Standard Component Classes */
   .card {
-    @apply rounded-xl border border-line bg-surface;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  .card-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-glass {
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .card-glass {
+      background-color: rgba(17, 24, 39, 0.8);
+    }
+  }
+
   .label {
-    @apply block text-sm font-medium text-foreground mb-1.5;
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 0.375rem;
   }
+
   .input {
-    @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-foreground
-           outline-none placeholder:text-muted
-           focus:border-brand focus:ring-2 focus:ring-brand/25;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  /* Tailwind v4 cannot @apply another component class, so the shared button
-     rules are declared once across all four selectors. */
+
+  /* iOS Safari zooms the viewport when a focused input is under 16px. */
+  @media (pointer: coarse) {
+    .input {
+      font-size: 1rem;
+    }
+  }
+
+  .input::placeholder {
+    color: var(--muted);
+    opacity: 0.7;
+  }
+
+  .input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px var(--brand-glow);
+  }
+
   .btn,
   .btn-primary,
   .btn-secondary,
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
-           transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  .btn-danger,
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1rem;
+    /* 44px is the comfortable touch target; padding alone left these at ~38px. */
+    min-height: 2.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    user-select: none;
   }
+
+  .btn:active,
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-danger:active,
+  .btn-ghost:active {
+    transform: scale(0.98);
+  }
+
+  .btn:disabled,
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-danger:disabled,
+  .btn-ghost:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
   .btn-primary {
-    @apply bg-brand text-white hover:opacity-90;
+    background-color: var(--brand);
+    color: #ffffff;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--brand-hover);
+    box-shadow: 0 4px 6px -1px var(--brand-glow);
+  }
+
   .btn-secondary {
-    @apply border border-line bg-surface text-foreground hover:bg-surface-muted;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    color: var(--foreground);
   }
+
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--surface-muted);
+    border-color: var(--muted);
+  }
+
   .btn-danger {
-    @apply border border-rose-300 text-rose-700 hover:bg-rose-50
-           dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/10;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    background-color: var(--danger-soft);
+    color: var(--danger);
   }
+
+  .btn-danger:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--surface-muted);
+    color: var(--foreground);
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+    min-height: 2rem;
+  }
+
+  /* Coarse pointers get the full 44px target even on the compact variant —
+     the button still *looks* small, the tappable box just isn't. */
+  @media (pointer: coarse) {
+    .btn-sm {
+      min-height: 2.75rem;
+    }
+  }
+
   .pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px currentColor;
   }
+
   .th {
-    @apply px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-muted;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
   }
+
   .td {
-    @apply px-4 py-3 text-sm text-foreground align-middle;
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    vertical-align: middle;
+  }
+
+}
+
+/* Respect the OS "reduce motion" setting. The card lift, the pulsing status
+   dot and the punch-clock transitions are decoration, not information, so
+   they are safe to drop entirely for users who ask for less movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -44,6 +44,8 @@ src/app/
         │       └── page.tsx  # Detailed Employee Edit, Attendance & Salary History
         ├── leave/
         │   └── page.tsx      # HR Leave Approvals & Rejections
+        ├── project/
+        │   └── page.tsx      # Delivery status and roadmap
         └── payroll/
             └── page.tsx      # HR Payroll Directory & Monthly Salary Summary
 ```
@@ -72,7 +74,7 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.1 Landing Router — `GET /`
 
-- **File**: [`src/app/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/page.tsx)
+- **File**: [`src/app/page.tsx`](../src/app/page.tsx)
 - **Access Level**: Public (Dynamic session check)
 - **Rendering**: Server Component (`export const dynamic = "force-dynamic"`)
 - **Purpose**: Evaluates user session and redirects immediately:
@@ -83,8 +85,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.2 Sign In Page — `GET /signin`
 
-- **File**: [`src/app/(auth)/signin/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(auth)/signin/page.tsx)
-- **Layout**: [`src/app/(auth)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(auth)/layout.tsx)
+- **File**: [`src/app/(auth)/signin/page.tsx`](../src/app/(auth)/signin/page.tsx)
+- **Layout**: [`src/app/(auth)/layout.tsx`](../src/app/(auth)/layout.tsx)
 - **Access Level**: Public
 - **Rendering**: Client Component (`"use client"`)
 - **Form Component**: Uses `useActionState(signInAction)` and `useFields()`
@@ -95,21 +97,21 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.3 Sign Up Page — `GET /signup`
 
-- **File**: [`src/app/(auth)/signup/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(auth)/signup/page.tsx)
-- **Layout**: [`src/app/(auth)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(auth)/layout.tsx)
+- **File**: [`src/app/(auth)/signup/page.tsx`](../src/app/(auth)/signup/page.tsx)
+- **Layout**: [`src/app/(auth)/layout.tsx`](../src/app/(auth)/layout.tsx)
 - **Access Level**: Public
 - **Rendering**: Client Component (`"use client"`)
 - **Form Component**: Uses `useActionState(signUpAction)` and `useFields()`
 - **Server Actions**: `signUpAction` (`src/actions/auth.ts`)
-- **Fields**: First Name, Last Name, Employee ID (`employeeCode`), Work Email, Password, Role (`employee` / `admin`).
-- **Functionality**: Creates user account, generates 24-hour verification token, and redirects to `/verify-email?sent=<email>&devToken=<token>`.
+- **Fields**: First Name, Last Name, Employee ID (`employeeCode`), Work Email, Password.
+- **Functionality**: Creates an employee account, generates a 24-hour verification token, and redirects to `/verify-email?sent=<email>`. In non-production environments, the redirect also includes a `devToken` for local testing. Administrators can promote an employee later from the protected employee-management page.
 - **Validation**: Enforces strict password policies (>=10 chars, uppercase, lowercase, number, special char via `passwordProblems` in `src/lib/auth.ts`).
 
 ---
 
 ### 2.4 Email Verification — `GET /verify-email`
 
-- **File**: [`src/app/verify-email/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/verify-email/page.tsx)
+- **File**: [`src/app/verify-email/page.tsx`](../src/app/verify-email/page.tsx)
 - **Access Level**: Public
 - **Rendering**: Server Component
 - **URL Parameters**:
@@ -117,14 +119,14 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
   - `sent` *(optional, string)*: Email address notification message.
   - `devToken` *(optional, string)*: Development convenience link to verify token locally.
 - **Server Actions**: `verifyEmailAction(token)` (`src/actions/auth.ts`)
-- **Functionality**: Validates one-time activation token, marks `email_verified_at = NOW()` and `is_active = true`. Displays success alert with link to `/signin`.
+- **Functionality**: Validates the single-use activation token, records `email_verified_at`, and marks the token as used. Displays a success alert with a link to `/signin`. Account activation state is managed separately by an administrator.
 
 ---
 
 ### 2.5 Main Dashboard — `GET /dashboard`
 
-- **File**: [`src/app/(app)/dashboard/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/dashboard/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/dashboard/page.tsx`](../src/app/(app)/dashboard/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component
 - **Key UI Sections**:
@@ -143,8 +145,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.6 Employee Attendance — `GET /attendance`
 
-- **File**: [`src/app/(app)/attendance/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/attendance/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/attendance/page.tsx`](../src/app/(app)/attendance/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component
 - **URL Parameters**:
@@ -161,8 +163,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.7 Employee Leave & Time-Off — `GET /leave`
 
-- **File**: [`src/app/(app)/leave/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/leave/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/leave/page.tsx`](../src/app/(app)/leave/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component
 - **Components & Actions**:
@@ -177,8 +179,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.8 Employee Payroll — `GET /payroll`
 
-- **File**: [`src/app/(app)/payroll/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/payroll/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/payroll/page.tsx`](../src/app/(app)/payroll/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component (Read-only)
 - **Data Queries**: `getCurrentSalary()`, `getSalaryHistory()` (`src/lib/employee-queries.ts`)
@@ -191,8 +193,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.9 Employee Profile & Self-Service — `GET /profile`
 
-- **File**: [`src/app/(app)/profile/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/profile/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/profile/page.tsx`](../src/app/(app)/profile/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: Authenticated User (`requireUser()`)
 - **Rendering**: Server Component
 - **Components & Actions**:
@@ -209,8 +211,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.10 Admin Attendance Management — `GET /admin/attendance`
 
-- **File**: [`src/app/(app)/admin/attendance/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/admin/attendance/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/admin/attendance/page.tsx`](../src/app/(app)/admin/attendance/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: HR / Admin Only (`requireAdmin()`)
 - **Rendering**: Server Component
 - **URL Parameters**:
@@ -226,8 +228,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.11 Admin Employee Roster — `GET /admin/employees`
 
-- **File**: [`src/app/(app)/admin/employees/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/admin/employees/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/admin/employees/page.tsx`](../src/app/(app)/admin/employees/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: HR / Admin Only (`requireAdmin()`)
 - **Rendering**: Server Component
 - **URL Parameters**:
@@ -242,8 +244,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.12 Admin Employee Detail & Editing — `GET /admin/employees/[employeeId]`
 
-- **File**: [`src/app/(app)/admin/employees/[employeeId]/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/admin/employees/[employeeId]/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/admin/employees/[employeeId]/page.tsx`](../src/app/(app)/admin/employees/[employeeId]/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: HR / Admin Only (`requireAdmin()`)
 - **Rendering**: Server Component
 - **Route Parameters**:
@@ -266,8 +268,8 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.13 Admin Leave Approvals — `GET /admin/leave`
 
-- **File**: [`src/app/(app)/admin/leave/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/admin/leave/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/admin/leave/page.tsx`](../src/app/(app)/admin/leave/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: HR / Admin Only (`requireAdmin()`)
 - **Rendering**: Server Component
 - **URL Parameters**:
@@ -283,14 +285,24 @@ Unlike traditional middleware-centric authorization, Dayflow enforces authorizat
 
 ### 2.14 Admin Payroll Directory — `GET /admin/payroll`
 
-- **File**: [`src/app/(app)/admin/payroll/page.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/admin/payroll/page.tsx)
-- **Layout**: [`src/app/(app)/layout.tsx`](file:///c:/BokaChoda/oodo/odoo-dayflow/src/app/(app)/layout.tsx)
+- **File**: [`src/app/(app)/admin/payroll/page.tsx`](../src/app/(app)/admin/payroll/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
 - **Access Level**: HR / Admin Only (`requireAdmin()`)
 - **Rendering**: Server Component
 - **Data Queries**: `getCurrentSalaries()` batch query across all active employees.
 - **Data Display**:
   - Company-wide payroll KPIs: Total Monthly Gross, Total Monthly Net, Count of employees missing salary configuration.
   - Roster payroll table displaying Basic, HRA, Allowances, Deductions, Net Pay, Effective Date, and an "Edit" link targeting `/admin/employees/[employeeId]`.
+
+---
+
+### 2.15 Admin Project Status — `GET /admin/project`
+
+- **File**: [`src/app/(app)/admin/project/page.tsx`](../src/app/(app)/admin/project/page.tsx)
+- **Layout**: [`src/app/(app)/layout.tsx`](../src/app/(app)/layout.tsx)
+- **Access Level**: HR / Admin Only (`requireAdmin()`)
+- **Rendering**: Server Component
+- **Purpose**: Summarizes shipped modules, delivery gates, current blockers, and the prioritized product roadmap.
 
 ---
 
@@ -302,7 +314,7 @@ The table below maps the functional requirements spec directly to the routing im
 |---|---|---|---|
 | **3.1 Authentication & Email Verification** | `/signin`<br>`/signup`<br>`/verify-email` | Public | `signInAction`<br>`signUpAction`<br>`verifyEmailAction` |
 | **3.2 Role-Based Dashboards** | `/dashboard` | Authenticated User | Reads `attendance`, `leaveRequests`, `activityLog` |
-| **3.3 Profile & Self-Service Management** | `/profile`<br>`/admin/employees`<br>`/admin/employees/[employeeId]` | Employee (Self)<br>HR / Admin | `updateProfileSelfAction`<br>`adminUpdateEmployeeAction`<br>`changePasswordAction` |
+| **3.3 Profile & Self-Service Management** | `/profile`<br>`/admin/employees`<br>`/admin/employees/[employeeId]` | Employee (Self)<br>HR / Admin | `updateProfileSelfAction`<br>`adminUpdateEmployeeAction` |
 | **3.4 Attendance Management** | `/attendance`<br>`/admin/attendance` | Employee (Self)<br>HR / Admin | `checkInAction`<br>`checkOutAction`<br>`adminOverrideAttendanceAction` |
 | **3.5 Leave Workflows & Approvals** | `/leave`<br>`/admin/leave` | Employee (Self)<br>HR / Admin | `requestLeaveAction`<br>`withdrawLeaveAction`<br>`adminReviewLeaveAction` |
 | **3.6 Payroll Visibility & Structure** | `/payroll`<br>`/admin/payroll` | Employee (Read-only)<br>HR / Admin | `adminUpdateSalaryAction` |

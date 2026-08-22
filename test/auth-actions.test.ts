@@ -82,6 +82,13 @@ describe("signUpAction", () => {
     expect(await db.select().from(emailVerificationTokens)).toHaveLength(1);
   });
 
+  it("always creates an employee when a crafted request submits an admin role", async () => {
+    await expectRedirect(() => signUpAction({}, signUpForm({ role: "admin" })));
+
+    const [user] = await db.select().from(users);
+    expect(user.role).toBe("employee");
+  });
+
   it("rejects a weak password and writes nothing", async () => {
     const res = await signUpAction({}, signUpForm({ password: "weakpass" }));
     expect(res.error).toMatch(/password must/i);
