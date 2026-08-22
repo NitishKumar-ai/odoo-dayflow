@@ -43,20 +43,21 @@ export default async function AppLayout({
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined,
     },
     { href: "/admin/payroll", label: "Payroll" },
+    { href: "/admin/project", label: "Project" },
   ];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md shadow-xs">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
           {/* Brand Logo */}
           <Link href="/dashboard" className="transition-opacity hover:opacity-90">
             <Brand size="md" />
           </Link>
 
           {/* Primary Navigation */}
-          <div className="flex-1 overflow-x-auto py-1">
+          <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain py-1">
             <Nav items={isAdmin ? adminNav : employeeNav} />
           </div>
 
@@ -64,10 +65,10 @@ export default async function AppLayout({
           <div className="flex items-center gap-3">
             <Link
               href="/profile"
-              className="flex items-center gap-2.5 rounded-xl border border-line bg-surface p-1.5 pr-3 shadow-xs transition-colors hover:bg-surface-muted hover:border-brand/40"
+              className="flex min-h-11 shrink-0 items-center gap-2.5 rounded-xl border border-line bg-surface p-1.5 shadow-xs transition-colors hover:bg-surface-muted hover:border-brand/40 sm:pr-3"
             >
               <Avatar name={user.name} size={32} />
-              <div className="text-left">
+              <div className="hidden text-left sm:block">
                 <p className="text-xs font-bold leading-tight text-foreground">{user.name}</p>
                 <div className="flex items-center gap-1.5">
                   <span
@@ -87,7 +88,7 @@ export default async function AppLayout({
               <button
                 type="submit"
                 title="Sign out of Dayflow"
-                className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-muted shadow-xs transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:border-rose-800/40 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-surface text-muted shadow-xs transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:border-rose-800/40 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
               >
                 <IconLogOut size={16} />
               </button>
@@ -98,33 +99,33 @@ export default async function AppLayout({
         {/* Sub-bar for Admin to toggle their own personal records */}
         {isAdmin && (
           <div className="border-t border-line/60 bg-surface-muted/40">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-2 text-xs font-semibold text-muted">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
+              <div className="hidden shrink-0 items-center gap-2 text-xs font-semibold text-muted sm:flex">
                 <IconUser size={13} className="text-brand" />
                 <span>My Personal Workspace:</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto sm:flex-none">
                 <Link
                   href="/attendance"
-                  className="rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
+                  className="flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
                 >
                   My Attendance
                 </Link>
                 <Link
                   href="/leave"
-                  className="rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
+                  className="flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
                 >
                   My Leaves
                 </Link>
                 <Link
                   href="/payroll"
-                  className="rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
+                  className="flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
                 >
                   My Salary
                 </Link>
                 <Link
                   href="/profile"
-                  className="rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
+                  className="flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface hover:text-foreground"
                 >
                   My Profile
                 </Link>

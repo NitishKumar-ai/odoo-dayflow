@@ -11,6 +11,7 @@ import {
   IconPayroll,
   IconEmployees,
   IconApprovals,
+  IconProject,
 } from "@/components/Icons";
 
 export type NavItem = {
@@ -28,6 +29,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Employees: IconEmployees,
   Approvals: IconApprovals,
   Payroll: IconPayroll,
+  Project: IconProject,
 };
 
 export function Nav({ items }: { items: NavItem[] }) {
@@ -46,7 +48,7 @@ export function Nav({ items }: { items: NavItem[] }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`group relative flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
+            className={`group relative flex min-h-11 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
               active
                 ? "bg-brand text-white shadow-xs shadow-brand/25 font-semibold"
                 : "text-muted hover:bg-surface-muted hover:text-foreground"
