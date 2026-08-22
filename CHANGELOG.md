@@ -2,6 +2,65 @@
 
 All notable changes to Dayflow are recorded here.
 
+## [0.2.0.0] - 2026-08-22
+
+A visual rebuild of every screen, a new delivery-progress page for HR, and fixes
+for two ways leave records could quietly contradict each other.
+
+### Added
+
+- **Project progress page for HR.** A new admin-only page showing what has
+  shipped, what is next, and what each remaining item is waiting on. Reachable
+  from "Project" in the admin navigation.
+- **Live figures while you type.** Applying for leave shows the working days it
+  will consume as the dates change, and editing a salary shows gross and net
+  updating alongside the fields.
+- **Balances and pay you can read at a glance.** Leave balances show remaining
+  days as a meter, and salary shows the split between basic, HRA and allowances
+  as a single bar with the deductions and take-home spelled out beneath it.
+- **A running clock and punch-state card.** The attendance widget shows the
+  current time and, once you are clocked in, how long you have been working.
+- **One-look dashboard.** Headline figures, a week-at-a-glance attendance strip,
+  leave meters, and, for HR, a command centre with pending approvals and
+  headcount.
+
+### Changed
+
+- **Every screen was redesigned** on a shared set of design tokens: sign-in,
+  sign-up, verification, dashboard, attendance, leave, payroll, profile, the
+  employee directory, the employee detail view and all admin hubs.
+- **Sign-up now checks your password as you type**, listing each rule as it is
+  met rather than rejecting the form afterwards.
+- **The header works on a phone.** Navigation scrolls as one row instead of
+  wrapping into a tall stack, and the profile block collapses to the avatar on
+  narrow screens.
+- **Controls are easier to hit.** Buttons and navigation links now meet a 44px
+  touch target, and form fields no longer shrink below the size that makes iOS
+  Safari zoom in when you tap them.
+- **Movement respects your system setting.** Card lifts, the pulsing status dot
+  and hover transitions stop for anyone who has asked for reduced motion.
+- **Seeding demo data no longer prints the password** and refuses to run with a
+  weak one.
+
+### Fixed
+
+- **Withdrawing leave can no longer erase an approval.** Withdrawing a request
+  at the same moment HR approved it used to delete the request while leaving the
+  approved days marked as leave, which blocked the employee from clocking in with
+  nothing on record to explain why. The withdrawal is now refused with a message.
+- **Two approvers can no longer both decide the same request.** Simultaneous
+  decisions used to overwrite each other, which could leave days marked as leave
+  behind a request that ended up rejected. The second decision is now told the
+  request was already decided.
+- **Text no longer sits underneath the icon in form fields.** Shared component
+  styles were overriding the per-field spacing, affecting sign-in, sign-up and
+  the employee search.
+- **Administrator accounts can no longer be created from public sign-up.**
+- **Demo credentials were removed from the sign-in page.**
+- **The status dropdown in HR attendance overrides keeps its selection** after
+  the change is saved.
+
+
 ## [0.1.0.0] - 2026-08-22
 
 First working release of the Dayflow HRMS, covering sections 3.1 through 3.6 of

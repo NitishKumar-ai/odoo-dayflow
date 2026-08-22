@@ -332,3 +332,126 @@ describe("concurrent submits", () => {
     expect(rows.reduce((n, r) => n + r.days, 0)).toBeLessThanOrEqual(5);
   });
 });
+
+describe("concurrent leave decisions", () => {
+  /**
+   * Regression: the withdraw path used to re-check `status === "pending"` with
+   * a select and then delete by id alone. An admin approving in that window
+   * left the `leave` attendance rows behind with no request to explain them,
+   * so the employee stayed blocked from checking in.
+   */
+  it("refuses to withdraw a request an admin has already approved", async () => {
+    actAs({ ...employee, role: "employee" });
+    await applyLeaveAction({}, form({
+      leaveType: "paid", startDate: MON, endDate: FRI, remarks: "",
+    }));
+    const [req] = await db.select().from(leaveRequests);
+
+    actAs({ ...admin, role: "admin" });
+    await decideLeaveAction({}, form({
+      requestId: req.id, decision: "approved", comment: "",
+    }));
+
+    actAs({ ...employee, role: "employee" });
+    const res = await cancelLeaveAction({}, form({ requestId: req.id }));
+
+    expect(res.error).toMatch(/no longer be withdrawn|Only pending/i);
+    const rows = await db.select().from(leaveRequests);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].status).toBe("approved");
+  });
+
+  it("keeps approved leave attendance and its request consistent", async () => {
+    actAs({ ...employee, role: "employee" });
+    await applyLeaveAction({}, form({
+      leaveType: "paid", startDate: MON, endDate: FRI, remarks: "",
+    }));
+    const [req] = await db.select().from(leaveRequests);
+
+    actAs({ ...admin, role: "admin" });
+    await decideLeaveAction({}, form({
+      requestId: req.id, decision: "approved", comment: "",
+    }));
+
+    const marked = await db
+      .select()
+      .from(attendance)
+      .where(and(eq(attendance.employeeId, employee.employeeId), eq(attendance.status, "leave")));
+    expect(marked).toHaveLength(5);
+
+    // Every attendance row marked `leave` still has its request behind it.
+    const [still] = await db.select().from(leaveRequests).where(eq(leaveRequests.id, req.id));
+    expect(still.status).toBe("approved");
+  });
+
+  /**
+   * Regression: two admins deciding at once both passed the pending check and
+   * both wrote. An approve followed by a reject left `leave` attendance rows
+   * written by the approve branch behind a rejected request.
+   */
+  it("lets only one of two simultaneous decisions win", async () => {
+    actAs({ ...employee, role: "employee" });
+    await applyLeaveAction({}, form({
+      leaveType: "paid", startDate: MON, endDate: FRI, remarks: "",
+    }));
+    const [req] = await db.select().from(leaveRequests);
+
+    actAs({ ...admin, role: "admin" });
+    // Fired together so both pass the pending pre-check and race on the write.
+    // Without the status predicate in the UPDATE, both commit and the loser
+    // overwrites the winner — leaving `leave` attendance rows behind a
+    // rejected request.
+    const [a, b] = await Promise.all([
+      decideLeaveAction({}, form({ requestId: req.id, decision: "approved", comment: "first" })),
+      decideLeaveAction({}, form({ requestId: req.id, decision: "rejected", comment: "second" })),
+    ]);
+
+    const wins = [a, b].filter((r) => r.ok);
+    const losses = [a, b].filter((r) => r.error);
+    expect(wins).toHaveLength(1);
+    expect(losses).toHaveLength(1);
+    expect(losses[0].error).toMatch(/already decided/i);
+
+    const [row] = await db.select().from(leaveRequests).where(eq(leaveRequests.id, req.id));
+    const marked = await db
+      .select()
+      .from(attendance)
+      .where(and(eq(attendance.employeeId, employee.employeeId), eq(attendance.status, "leave")));
+
+    // The surviving status and the attendance rows must agree: `leave` rows
+    // exist if and only if the request ended up approved.
+    expect(marked.length > 0).toBe(row.status === "approved");
+  });
+
+  it("does not withdraw a request while a decision is landing", async () => {
+    actAs({ ...employee, role: "employee" });
+    await applyLeaveAction({}, form({
+      leaveType: "paid", startDate: MON, endDate: FRI, remarks: "",
+    }));
+    const [req] = await db.select().from(leaveRequests);
+
+    const decide = (async () => {
+      actAs({ ...admin, role: "admin" });
+      return decideLeaveAction({}, form({ requestId: req.id, decision: "approved", comment: "" }));
+    })();
+    const cancel = cancelLeaveAction({}, form({ requestId: req.id }));
+    const [decided, cancelled] = await Promise.all([decide, cancel]);
+
+    const rows = await db.select().from(leaveRequests).where(eq(leaveRequests.id, req.id));
+    const marked = await db
+      .select()
+      .from(attendance)
+      .where(and(eq(attendance.employeeId, employee.employeeId), eq(attendance.status, "leave")));
+
+    if (decided.ok && rows.length === 1) {
+      // Approval won: the withdraw must have been refused, and the attendance
+      // rows it wrote must still have their request behind them.
+      expect(cancelled.error).toBeTruthy();
+      expect(rows[0].status).toBe("approved");
+    } else {
+      // Withdraw won: nothing may be left marked as leave.
+      expect(rows).toHaveLength(0);
+      expect(marked).toHaveLength(0);
+    }
+  });
+});
