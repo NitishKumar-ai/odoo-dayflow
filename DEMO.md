@@ -4,15 +4,24 @@ Everything a presenter needs, in one page.
 
 ## Credentials
 
-Both accounts use the same password.
+| Role | Email |
+|---|---|
+| HR / Admin | `asha@dayflow.test` |
+| Employee | `rohan@dayflow.test` |
 
-| Role | Email | Password |
-|---|---|---|
-| HR / Admin | `asha@dayflow.test` | `Dayflow@2026!` |
-| Employee | `rohan@dayflow.test` | `Dayflow@2026!` |
+Every seeded account shares one password, held in `DEMO_SEED_PASSWORD` in
+`.env.local` — which is git-ignored and stays on the presenter's machine. Read
+it there:
+
+```bash
+grep DEMO_SEED_PASSWORD .env.local
+```
 
 The other seeded employees (`priya@`, `daniel@`, `mei@`, `sam@` `dayflow.test`)
-share that password too, if a second employee is needed on screen.
+use the same password, if a second employee is needed on screen.
+
+**This repository is public.** Never write the password into a tracked file,
+and never reuse the local demo password on the production deployment.
 
 Local URL: http://localhost:3000 · Production: https://odoo-dayflow-steel.vercel.app
 
