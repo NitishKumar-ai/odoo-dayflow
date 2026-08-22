@@ -87,4 +87,72 @@ describe("LeaveForm", () => {
     fireEvent.change(screen.getByLabelText(/^from$/i), { target: { value: "2026-09-10" } });
     expect(end.min).toBe("2026-09-10");
   });
+
+  it("counts working days, excludes weekends, and uses singular and plural copy", () => {
+    render(<LeaveForm minDate="2026-08-22" />);
+
+    fillDates("2026-09-11", "2026-09-14");
+    expect(screen.getByText("Requesting 2 working days")).toBeInTheDocument();
+    expect(screen.getByText("Excludes weekends")).toBeInTheDocument();
+
+    fillDates("2026-09-14", "2026-09-14");
+    expect(screen.getByText("Requesting 1 working day")).toBeInTheDocument();
+    expect(screen.queryByText("Requesting 1 working days")).not.toBeInTheDocument();
+  });
+
+  it("shows an over-balance warning for paid and sick leave", async () => {
+    const user = userEvent.setup();
+    render(
+      <LeaveForm
+        minDate="2026-08-22"
+        balances={[
+          { leaveType: "paid", left: 1, entitled: 10 },
+          { leaveType: "sick", left: 0, entitled: 5 },
+        ]}
+      />,
+    );
+
+    fillDates("2026-09-07", "2026-09-09");
+    expect(screen.getByText("Exceeds quota")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText(/leave type/i), "sick");
+    expect(screen.getByText("Exceeds quota")).toBeInTheDocument();
+  });
+
+  it("does not apply balance limits to unpaid leave", async () => {
+    const user = userEvent.setup();
+    render(
+      <LeaveForm
+        minDate="2026-08-22"
+        balances={[{ leaveType: "unpaid", left: 0, entitled: 0 }]}
+      />,
+    );
+
+    await user.selectOptions(screen.getByLabelText(/leave type/i), "unpaid");
+    fillDates("2026-09-07", "2026-09-11");
+
+    expect(screen.getByText("Requesting 5 working days")).toBeInTheDocument();
+    expect(screen.getByText("Excludes weekends")).toBeInTheDocument();
+    expect(screen.queryByText("Exceeds quota")).not.toBeInTheDocument();
+  });
+
+  it("does not show a day summary for empty or weekend-only ranges", () => {
+    render(<LeaveForm minDate="2026-08-22" />);
+
+    expect(screen.queryByText(/Requesting .* working day/)).not.toBeInTheDocument();
+    fillDates("2026-09-12", "2026-09-13");
+    expect(screen.queryByText(/Requesting .* working day/)).not.toBeInTheDocument();
+  });
+
+  it("moves the end date forward when the start date passes it", () => {
+    render(<LeaveForm minDate="2026-08-22" />);
+    fillDates("2026-09-07", "2026-09-09");
+
+    fireEvent.change(screen.getByLabelText(/^from$/i), {
+      target: { value: "2026-09-14" },
+    });
+
+    expect((screen.getByLabelText(/^to$/i) as HTMLInputElement).value).toBe("2026-09-14");
+    expect(screen.getByText("Requesting 1 working day")).toBeInTheDocument();
+  });
 });
