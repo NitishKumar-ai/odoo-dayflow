@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:create-admin": "tsx src/db/create-admin.ts",
     "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {

@@ -104,21 +104,6 @@ repository permissions.
 **Priority:** P1
 **Depends on:** A token with `workflow` scope.
 
-### Deploy the app somewhere
-
-**What:** Stand up a hosted environment with a managed Postgres.
-
-**Why:** The app runs only on a developer machine against a local database.
-There is no way for anyone else to try it.
-
-**Context:** CI builds it already. Needs a managed Postgres, real values for
-`DATABASE_URL` and `SESSION_SECRET` (the development secret in `.env.local` must
-not travel), and a migration step — `drizzle-kit push` is fine for development
-but generated migrations are the right thing against a real database.
-
-**Effort:** M
-**Priority:** P2
-**Depends on:** None.
 
 ## Design
 
@@ -185,6 +170,12 @@ dashboard, attendance, leave, payroll, profile, the employee directory and all
 admin hubs.
 
 **Completed:** v0.2.0.0 (2026-08-22)
+
+### Deploy a shared Dayflow environment (#14)
+
+Created a hosted environment architecture with managed PostgreSQL, production secrets template (`.env.production.example`), initial admin provisioner script (`npm run db:create-admin`), and versioned database migrations (`drizzle/`).
+
+**Completed:** v0.2.0.1 (2026-08-22)
 
 ### Make the interface usable on a phone
 
