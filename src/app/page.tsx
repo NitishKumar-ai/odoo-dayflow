@@ -99,7 +99,7 @@ export default async function Home() {
           ))}
         </div>
         <div className={styles.productFrame} data-reveal>
-          <Image src="/marketing/dayflow-product-video-hero.png" alt="Dayflow dashboard showing attendance, leave, payroll, and approval workflows" width={1672} height={941} priority />
+          <Image src="/marketing/dayflow-product-video-hero.jpg" alt="Dayflow dashboard showing attendance, leave, payroll, and approval workflows" width={1672} height={941} priority />
           <div className={styles.frameCaption}><span>YOUR WHOLE WORKDAY</span><strong>One clear view.</strong></div>
         </div>
       </section>
