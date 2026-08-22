@@ -1,308 +1,54 @@
-# Dayflow
+# Dayflow Code Wiki
 
-Dayflow is a self-contained HR portal for a small company: employees clock in and
-out, apply for leave, and read their own salary structure; HR/admin users manage
-people, override attendance, approve leave, and maintain pay.
+Dayflow is a single Next.js HR portal for one company. Employees clock in,
+apply for leave, and read their salary. HR manages people, attendance
+overrides, leave approvals, and pay structures.
 
-It is a single Next.js 16 App Router application talking directly to Postgres
-through Drizzle ORM. There is no separate API service — every mutation is a
-React server action, and every page is a server component that queries the
-database.
+There is no separate API. Pages are server components that query Postgres
+through Drizzle. Mutations are React server actions in `src/actions/`.
 
----
-
-## Table of contents
-
-- [Feature tour](#feature-tour)
-- [Tech stack](#tech-stack)
-- [Getting started](#getting-started)
-- [Demo accounts](#demo-accounts)
-- [Route map](#route-map)
-- [Data model](#data-model)
-- [Business rules](#business-rules)
-- [Authentication and sessions](#authentication-and-sessions)
-- [Code layout and conventions](#code-layout-and-conventions)
-- [Known gaps](#known-gaps)
+Repository: [NitishKumar-ai/odoo-dayflow](https://github.com/NitishKumar-ai/odoo-dayflow)
 
 ---
 
-## Feature tour
+## Pages
 
-### Employee
+| Page | What it covers |
+|---|---|
+| [Architecture](Architecture.md) | Process shape, auth model, request path |
+| [Getting started](Getting-Started.md) | Env, database, demo accounts, scripts |
+| [Data model](Data-Model.md) | Tables, enums, relationships |
+| [Authentication](Authentication.md) | Sessions, verification, `requireUser` / `requireAdmin` |
+| [Routes and pages](Routes-and-Pages.md) | Every URL, who can open it, which action it calls |
+| [Attendance](Attendance.md) | Check-in, status derivation, HR override |
+| [Leave](Leave.md) | Quotas, overlap, approval writing through to attendance |
+| [Payroll](Payroll.md) | Versioned salary, money helpers, payslip gap |
+| [Code layout](Code-Layout.md) | Folders, conventions, forms, dates, money |
+| [Testing](Testing.md) | Vitest layers, test database guard |
+| [Deploying](Deploying.md) | Hosted Postgres, env, first admin |
+| [System and trade-offs](System_and_trade_of-Day-FLow.md) | Why each technical choice was made |
 
-| Area | What it does |
-| --- | --- |
-| Dashboard | Today's attendance card with check-in / check-out, weekly present count, latest leave requests, recent activity |
-| Profile | View full job details; edit **phone, address, photo URL** only |
-| Attendance | Personal calendar of worked days, hours, and status |
-| Leave | Apply, see balances and history, withdraw a request while it is still pending |
-| Salary | Read-only current structure plus the full version history |
-
-### HR / Admin
-
-| Area | What it does |
-| --- | --- |
-| Employees | Directory, per-employee detail page, edit every profile field, change role, deactivate |
-| Attendance | Company-wide view with manual status override and a note |
-| Approvals | Approve or reject pending leave with a decision comment |
-| Payroll | Create a new salary version per employee, effective from a chosen date |
-
-Admins keep their own employee-side pages: the app shell renders a second nav
-row labelled "My own records".
+Long-form route catalogue, when present on the branch: `docs/ROUTING_PAGES.md`.
 
 ---
 
-## Tech stack
+## Spec map
 
-| Layer | Choice |
-| --- | --- |
-| Framework | Next.js 16.3.2, App Router, React 19 |
-| Language | TypeScript (strict), path alias `@/*` → `./src/*` |
-| Database | Postgres via `postgres` (postgres.js) |
-| ORM / migrations | Drizzle ORM + drizzle-kit |
-| Auth | Custom — `bcryptjs` hashing, `jose` HS256 JWT in an httpOnly cookie |
-| Validation | Zod v4 on every server action |
-| Styling | Tailwind CSS v4, configured in CSS (`@theme inline` in `src/app/globals.css`), no `tailwind.config.js` |
-| Fonts | `next/font/google` — Geist / Geist Mono |
-
----
-
-## Getting started
-
-### 1. Requirements
-
-- Node.js 20+
-- A Postgres database you can reach with a connection URL
-
-### 2. Environment
-
-Create `.env.local` in the repo root:
-
-```bash
-DATABASE_URL="postgres://user:password@localhost:5432/dayflow"
-SESSION_SECRET="a-long-random-string-used-to-sign-session-jwts"
-APP_URL="http://localhost:3000"   # only used to build the email-verification link
-```
-
-`SESSION_SECRET` is required — `src/lib/auth.ts` throws if it is missing.
-`DATABASE_URL` is read by both the app and `drizzle.config.ts`.
-
-### 3. Create the schema
-
-No migration files are committed yet (`drizzle/` is generated, not tracked), so
-push the schema straight from `src/db/schema.ts`:
-
-```bash
-npx drizzle-kit push        # or: npx drizzle-kit generate && npx drizzle-kit migrate
-```
-
-### 4. Seed demo data
-
-```bash
-npx tsx src/db/seed.ts
-```
-
-> The seed script's own comment says `npm run db:seed`, but that script is not
-> in `package.json` yet — invoke it with `npx tsx` until it is added.
-> **The seed clears every table before inserting.** Never run it against data
-> you care about.
-
-### 5. Run
-
-```bash
-npm run dev        # http://localhost:3000 (Turbopack)
-npm run build      # production build
-npm run start      # serve the production build
-npx tsc --noEmit   # typecheck — there is no linter or test runner in this repo
-```
-
-`npx tsc --noEmit` needs `.next/types/` to exist, so run `npm run dev` or
-`npm run build` at least once first: route props such as `LayoutProps<"/">` are
-globally injected types generated by Next, not imports.
+| Requirement | Code |
+|---|---|
+| 3.1 Sign up / sign in / verification | `src/actions/auth.ts`, `src/app/(auth)/`, `src/app/verify-email/` |
+| 3.2 Dashboards | `src/app/(app)/dashboard/page.tsx` |
+| 3.3 Profile | `src/app/(app)/profile/`, `src/actions/profile.ts` |
+| 3.4 Attendance | `src/app/(app)/attendance/`, `src/app/(app)/admin/attendance/` |
+| 3.5 Leave | `src/app/(app)/leave/`, `src/app/(app)/admin/leave/` |
+| 3.6 Payroll | `src/app/(app)/payroll/`, `src/app/(app)/admin/payroll/` |
+| Delivery status (beyond spec) | `src/app/(app)/admin/project/` |
 
 ---
 
-## Demo accounts
+## Still open
 
-After seeding, every account shares the password **`Dayflow#2026`** and is
-already email-verified.
-
-| Email | Employee ID | Role | Job title |
-| --- | --- | --- | --- |
-| `asha@dayflow.test` | HR001 | admin | HR Manager |
-| `rohan@dayflow.test` | EMP101 | employee | Backend Engineer |
-| `priya@dayflow.test` | EMP102 | employee | Product Designer |
-| `daniel@dayflow.test` | EMP103 | employee | QA Analyst |
-| `mei@dayflow.test` | EMP104 | employee | Account Executive |
-| `sam@dayflow.test` | EMP105 | employee | Support Lead |
-
-For a fresh sign-up there is no mail service wired up. The verification link is
-printed to the server console, and outside production the token is also passed
-back on the `/verify-email` redirect so the flow is testable end to end.
-
----
-
-## Route map
-
-Route groups keep the two shells apart: `(auth)` is the signed-out shell,
-`(app)` is the signed-in shell and calls `requireUser()` in its layout.
-
-```
-/                              scaffold landing page (still the create-next-app default)
-/signin                        (auth)
-/signup                        (auth)  — choose employee or admin at sign-up
-/verify-email                  email verification landing
-
-/dashboard                     (app)   employee home
-/profile                       (app)   self-service profile
-/attendance                    (app)   own attendance
-/leave                         (app)   apply / history / balances
-/payroll                       (app)   own salary, read-only
-
-/admin/employees               (app)   directory              — admin only
-/admin/employees/[employeeId]  (app)   edit profile + salary  — admin only
-/admin/attendance              (app)   override attendance    — admin only
-/admin/leave                   (app)   approve / reject       — admin only
-/admin/payroll                 (app)   salary structures      — admin only
-```
-
-Guards are redirects, not errors: `requireUser()` sends anonymous visitors to
-`/signin`, and `requireAdmin()` sends non-admins to `/dashboard`.
-
----
-
-## Data model
-
-Defined in `src/db/schema.ts`. Every user has exactly one
-employee profile; everything else hangs off `employees` and cascades on delete.
-
-```
-users ─1:1─ employees ─┬─< attendance          (unique per employee+work_date)
-  │                    ├─< leave_requests
-  │                    ├─< leave_balances      (unique per employee+year+type)
-  │                    ├─< salary_structures   (unique per employee+effective_from)
-  │                    ├─< documents
-  │                    └─< activity_log
-  └─< email_verification_tokens
-```
-
-| Table | Notes |
-| --- | --- |
-| `users` | Auth identity: employee code, email, password hash, role, `is_active`, `email_verified_at` |
-| `employees` | Profile and job details, including `manager_id` |
-| `attendance` | One row per employee per day; `is_manual` marks an admin override so auto-derivation stops touching it |
-| `leave_requests` | Type, range, day count, status, decision comment and decider |
-| `leave_balances` | Annual entitlement per employee, year, and leave type |
-| `salary_structures` | Versioned by `effective_from` — edits add a version rather than overwriting |
-| `activity_log` | Append-only feed rendered on the dashboard |
-
-Enums: `role` (`admin`/`employee`), `attendance_status`
-(`present`/`absent`/`half_day`/`leave`), `leave_type` (`paid`/`sick`/`unpaid`),
-`leave_status` (`pending`/`approved`/`rejected`).
-
----
-
-## Business rules
-
-These are product decisions encoded in `src/lib/`, not database constraints.
-
-**Attendance status** (`src/lib/attendance.ts`) is derived at check-out from
-worked hours: **≥ 6 h → present**, **≥ 3 h → half-day**, otherwise **absent**.
-Between check-in and check-out the day reads as present. An approved leave day
-or an explicit admin override wins over derivation, and the override sticks
-because it sets `is_manual`.
-
-**Leave days** (`src/lib/leave.ts`) count weekdays only — weekends never consume
-leave, and a range that covers only a weekend is rejected. Default annual
-entitlement is **18 paid** and **12 sick** days, granted at sign-up for the
-current year; unpaid leave has no quota and is not balance-checked.
-
-**Leave application** rejects a range that overlaps any request that is not
-already rejected, and rejects a paid/sick range that would exceed the remaining
-balance for the start date's year.
-
-**Approving leave** also stamps the attendance calendar: every weekday in the
-range is upserted with status `leave`, so the employee's attendance view
-reflects the decision immediately.
-
-**Withdrawal** is only possible while a request is still `pending`; a withdrawn
-request is deleted outright.
-
-**Salary** saves are versioned by `effective_from` (re-saving the same date
-updates that version). Deductions may not exceed gross. `gross = basic + hra +
-allowances`, `net = gross − deductions`, formatted with `Intl.NumberFormat`
-defaulting to INR.
-
-**Self-lockout guard**: an admin cannot remove their own admin role or
-deactivate their own account from the employee edit form.
-
----
-
-## Authentication and sessions
-
-- Passwords are bcrypt-hashed with cost 12 and must be ≥ 10 characters with a
-  lowercase letter, an uppercase letter, a number, and a symbol.
-- Sign-in returns the same "Incorrect email or password" message whether or not
-  the account exists, so the form does not confirm which emails are registered.
-- The session is an HS256 JWT (`sub` = user id) signed with `SESSION_SECRET`,
-  stored in the httpOnly `dayflow_session` cookie, `sameSite=lax`, `secure` in
-  production, **8 hour** lifetime.
-- `getSessionUser()` re-reads the user on every request and returns `null` for a
-  deactivated or unverified account, so a revoked account loses access without
-  waiting for the cookie to expire. A malformed cookie returns `null` rather
-  than throwing.
-- Email verification tokens are 32 random bytes, single-use, valid 24 hours.
-
----
-
-## Code layout and conventions
-
-```
-src/
-  app/
-    (auth)/          signin, signup — signed-out shell
-    (app)/           dashboard, profile, attendance, leave, payroll, admin/* — signed-in shell
-    verify-email/
-    layout.tsx  page.tsx  globals.css
-  actions/           "use server" mutations: auth, attendance, leave, profile
-  components/        client components and shared UI primitives
-  lib/               auth, dates, attendance, leave, money, activity, *-queries
-  db/                schema.ts, index.ts (drizzle client), seed.ts, load-env.ts
-```
-
-Conventions worth matching when you add code:
-
-- **Pages are server components** that query Drizzle directly; mutations live in
-  `src/actions/` and are consumed with `useActionState`. Every action returns
-  `{ error?: string; ok?: string }` and re-authorises with `requireUser()` or
-  `requireAdmin()` — never trust the caller.
-- **Validate input with Zod** inside the action, and surface the first issue
-  message.
-- **`revalidatePath()` every view the mutation touches**, including the other
-  role's view — approving leave revalidates `/admin/leave`, `/leave`,
-  `/attendance`, and `/admin/attendance`.
-- **Dates are local `YYYY-MM-DD` strings** everywhere, matching the Postgres
-  `date` columns. Use the helpers in `src/lib/dates.ts` rather than passing
-  `Date` objects around.
-- **Server-only modules** import `server-only` (`lib/auth.ts`, `lib/activity.ts`).
-- **Log user-visible changes** with `logActivity()` so they appear on the
-  dashboard feed.
-- **Design tokens go in `globals.css`** under `@theme inline`, not in a Tailwind
-  config file.
-- **Read `node_modules/next/dist/docs/` before writing routing, data-fetching,
-  or caching code.** This Next.js version has breaking changes against older
-  conventions — see `AGENTS.md`. That `AGENTS.md` block is regenerated by
-  `next dev`; commit it with your work instead of deleting it.
-
----
-
-## Known gaps
-
-- `/` is still the untouched `create-next-app` landing page.
-- No mail delivery — verification links are logged to the console.
-- `documents` is in the schema but there is no upload UI or storage backend.
-- No `db:push` / `db:seed` scripts in `package.json`, and no committed
-  migrations under `drizzle/`.
-- No payslip generation, no payroll run — only the salary structure is modelled.
-- No linter, test runner, or CI. `npx tsc --noEmit` is the only check.
-- `employees.manager_id` is unused by any feature.
+- Verification email is built and logged; nothing sends it.
+- Documents are listed; files are not uploaded.
+- Payslips and reports are not generated yet.
+- CI workflow lives in `ci/` until a token with `workflow` scope can move it.
