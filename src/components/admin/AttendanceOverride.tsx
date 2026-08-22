@@ -34,7 +34,7 @@ export function AttendanceOverride({
       <label className="sr-only" htmlFor={`${rowId}-status`}>Status</label>
       <select
         {...field("status")}
-        className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
+        className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
       >
         <option value="present">Present</option>
         <option value="absent">Absent</option>
@@ -45,7 +45,7 @@ export function AttendanceOverride({
       <input
         {...field("note")}
         placeholder="Override reason..."
-        className="w-36 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-foreground outline-none placeholder:text-muted/60 focus:border-brand"
+        className="w-36 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted/60 focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
       />
 
       <SubmitButton
