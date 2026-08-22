@@ -28,6 +28,7 @@ Create `.env.local`:
 DATABASE_URL=postgres://USER@localhost:5432/dayflow
 SESSION_SECRET=<a long random string>
 APP_URL=http://localhost:3000
+DEMO_SEED_PASSWORD=<a local demo password>
 ```
 
 Then:
@@ -41,7 +42,7 @@ npm run dev
 
 ### Demo accounts
 
-Seeded with the password `Dayflow#2026`:
+Seeded with the password provided through `DEMO_SEED_PASSWORD`:
 
 | Role | Email |
 |---|---|
@@ -60,6 +61,10 @@ spread of leave requests including two awaiting approval.
 | `npm run db:push` | Apply `src/db/schema.ts` to the database |
 | `npm run db:seed` | Wipe and reseed demo data |
 | `npm run typecheck` | `tsc --noEmit` |
+
+The seed command refuses to run with `NODE_ENV=production` unless
+`ALLOW_DEMO_SEED=true` is explicitly set. It always deletes existing data, so
+never enable it for a real company database.
 
 ## How the spec maps to the code
 

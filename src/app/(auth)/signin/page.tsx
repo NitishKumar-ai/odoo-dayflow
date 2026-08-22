@@ -1,24 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState, useCallback, Suspense } from "react";
+import { useActionState, useState } from "react";
 import { signInAction, type FormState } from "@/actions/auth";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Alert } from "@/components/Alert";
-import { DemoLoginHelper } from "@/components/DemoLoginHelper";
 import { IconLock, IconMail, IconArrowRight } from "@/components/Icons";
 import { useFields } from "@/components/useFields";
 
 const initial: FormState = {};
 
-function SignInForm() {
+export default function SignInPage() {
   const [state, action] = useActionState(signInAction, initial);
-  const { field, setValues } = useFields({ email: "", password: "" });
+  const { field } = useFields({ email: "", password: "" });
   const [showPass, setShowPass] = useState(false);
-
-  const handleDemoSelect = useCallback((e: string, p: string) => {
-    setValues({ email: e, password: p });
-  }, [setValues]);
 
   return (
     <div className="card p-6 sm:p-8 shadow-md">
@@ -29,25 +24,7 @@ function SignInForm() {
         </p>
       </div>
 
-      <div className="my-5 border-t border-line" />
-
-      {/* Demo Credentials Quick Fill */}
-      <div className="mb-5">
-        <DemoLoginHelper onSelect={handleDemoSelect} />
-      </div>
-
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-line" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-surface px-2 text-muted font-semibold tracking-wider">
-            Or enter credentials
-          </span>
-        </div>
-      </div>
-
-      <form action={action} className="mt-4 space-y-4">
+      <form action={action} className="mt-6 space-y-4">
         {state.error ? <Alert tone="error">{state.error}</Alert> : null}
 
         <div>
@@ -113,13 +90,5 @@ function SignInForm() {
         </Link>
       </p>
     </div>
-  );
-}
-
-export default function SignInPage() {
-  return (
-    <Suspense fallback={<div className="card p-8 text-center text-muted">Loading sign in…</div>}>
-      <SignInForm />
-    </Suspense>
   );
 }
